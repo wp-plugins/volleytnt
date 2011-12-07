@@ -8,8 +8,8 @@ Version: 0.1
 Author URI: mailto:f.traversaro@gmail.com
 */
 
-define( 'VOLLEYTNT_PATH', dirname( __FILE__ ) );
-define( 'VOLLEYTNT_URL', WP_PLUGIN_URL . '/' . basename( VOLLEYTNT_PATH ) );
+define( 'VOLLEYTNT_PATH', WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'volleytnt' );
+define( 'VOLLEYTNT_URL', WP_PLUGIN_URL . '/volleytnt' );
 
 class VolleyTNT {
 	public $path = '';
@@ -65,7 +65,7 @@ class VolleyTNT {
 										'1'	=> __("Finale", 'volleytnt') );
 
 		wp_register_style( 'volleytnt_common', $this->url . '/style/common.css' );
-		wp_register_style( 'volleytnt_jqueryui', $this->url . '/style/jquery-ui-1.8.15.custom.css' );
+		wp_register_style( 'volleytnt_jqueryui', $this->url . '/style/jqueryui_gray/jquery-ui-1.8.15.custom.css' );
 		wp_register_style( 'volleytnt_admin', $this->url . '/style/admin.css', array( 'volleytnt_common', 'volleytnt_jqueryui' ) );
 		
 		$this->opts = (object) get_option( 'volleytnt_opts', array(	'nome'	=> 'Torneo',
