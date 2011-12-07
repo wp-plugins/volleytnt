@@ -1,0 +1,39 @@
+#icon-volleytnt {
+	background-image: url('Volleyball_32x32.png');
+	background-position: center center;
+	background-repeat: no-repeat;
+}
+
+.multiselect, .multiselect li {
+	margin:0px;
+}
+
+.volleytnt_form span.description {
+	display:block;
+	clear:left;
+}
+
+#squadra .remove {
+	cursor:pointer;
+	width:20px;
+	vertical-align: middle;
+}
+
+#squadra input {
+	width:145px;
+}
+
+input.anno {
+	width:50px;
+}
+
+input.giorno, input.mese, input.hh, input.mm {
+	width:25px;
+}
+
+.impossibilita .remove {
+	float: left;
+    margin: 4px 4px 4px 0;
+    text-align: center;
+	cursor:pointer;
+}
