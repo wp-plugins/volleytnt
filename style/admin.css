@@ -1,3 +1,7 @@
+BODY.loading * {
+	cursor:wait !important;
+}
+
 #icon-volleytnt {
 	background-image: url('Volleyball_32x32.png');
 	background-position: center center;
@@ -36,4 +40,100 @@ input.giorno, input.mese, input.hh, input.mm {
     margin: 4px 4px 4px 0;
     text-align: center;
 	cursor:pointer;
+}
+
+#vtnt_tabgiorni .numpartita {
+	float:right;
+	font-weight: bold;
+}
+
+#vtnt_tabgiorni td.slot {
+	background-color:#FFFFFF;
+}
+
+
+.gironedit .girone {
+	width:300px;
+	padding:10px;
+	background-color: #EEEEEE;
+    background-image: none;
+}
+
+.gironedit .girone li {
+	height:20px;
+	line-height:20px;
+	padding:3px;
+	cursor:move;
+	margin:3px;
+}
+
+.gironedit .disponibili {
+	float:right;
+}
+
+
+br.clearer {
+	clear:both;
+}
+#elencopartite {
+	width:300px;
+	float:right;
+}
+#elencopartite h4 {
+	margin-top:0;
+}
+#partite {
+	padding:10px;
+}
+#accopartite {
+	margin-right:320px;
+	width:auto;
+}
+.gestione_calendario {
+	clear:none;
+	width:560px;
+}
+
+.gestione_calendario tbody td {
+	height:50px;
+	padding:3px;
+}
+.gestione_calendario .disp_si {
+	background-color:#ccffcc;
+}
+.gestione_calendario .disp_no {
+	background-color:#ffcccc;
+}
+.gestione_calendario .orario {
+	color:#555;
+	font-style:italic;
+	font-size:8px;
+}
+.VolleyTNT_Partite .partita {
+	cursor:move;
+	padding:3px;
+	height:15px;
+	line-height:15px;
+}
+
+.VolleyTNT_Partite .partita .girone {
+	font-weight:bold;
+	display:block;
+	float:right;
+	padding-left:5px;
+}
+
+.VolleyTNT_Partite .ui-draggable-dragging {
+	height:21px;
+	width:270px;
+}
+
+.VolleyTNT_Risultati .modpunti {
+	width:30px;
+}
+
+.VolleyTNT_Risultati .modificando .risultato,
+.VolleyTNT_Risultati .modificando .squadra {
+	height:30px;
+	line-height:30px;
 }

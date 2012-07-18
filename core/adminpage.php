@@ -20,7 +20,7 @@ abstract class VolleyTNT_AdminPage {
 		$this->js_strings[ $slug ] = $string;
 	}
 	
-	final protected function add_menubal_newlink( $url, $label ) {
+	final protected function add_menubar_newlink( $url, $label ) {
 		$this->menubar_newlinks[] = array( 'url' => $url, 'label' => $label );
 	}
 	

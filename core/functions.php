@@ -28,4 +28,22 @@ function volleytnt_date_format( $type = 'php' ) {
 	return str_replace( $_s, $_r, __( '{g}/{m}/{a}', 'volleytnt' ) );
 }
 
+
+function volleytnt_human2mysql( $date ) {
+	$format = __( '{g}/{m}/{a}', 'volleytnt' );
+	
+	$pos = array();
+	$pos['g'] = strpos( $format, '{g}' );
+	$pos['m'] = strpos( $format, '{m}' );
+	$pos['a'] = strpos( $format, '{a}' );
+	asort( $pos );
+	$pos = array_map( create_function( '$n', 'return ++$n;') , array_flip( array_keys( $pos ) ) );
+	
+	$_s = array( '{g}', '{m}', '{a}' );
+	$_r = array( '(\d{1,2})', '(\d{1,2})', '(\d{4})' );
+	$regexp = '#' . str_replace( $_s, $_r, $format ) . '#';
+	$transf = '$' . $pos['a'] . '-$' . $pos['m'] . '-$' . $pos['g'];
+	return preg_replace( $regexp, $transf, trim( $date ) );
+}
+
 ?>

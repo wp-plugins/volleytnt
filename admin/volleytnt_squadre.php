@@ -4,7 +4,7 @@ class VolleyTNT_Squadre extends VolleyTNT_AdminPage {
 	public function __construct() {	
 		$this->set_title( __("Squadre", 'volleytnt') );
 		$this->set_title_action( $this->url('edit'), __("Nuova squadra", 'volleytnt') );
-		$this->add_menubal_newlink( $this->url('edit'), __("Iscrizione squadra", 'volleytnt') );
+		$this->add_menubar_newlink( $this->url('edit'), __("Iscrizione squadra", 'volleytnt') );
 		
 		$this->add_help_tab( __("Elenco squadre", 'volleytnt'), array( $this, 'help_elenco' ) );
 		$this->add_help_tab( __("Inserimento squadra", 'volleytnt'), array( $this, 'help_form' ) );
@@ -23,7 +23,7 @@ class VolleyTNT_Squadre extends VolleyTNT_AdminPage {
 	
 	public function help_elenco() {
 		echo '<p>';
-		_e("L'elenco delle squadre iscritte presenta la composizione di tutte le compagini iscritte al torneo in corso., Per ogni atleta sono mostrati i dati di contatto, la sua situazione di pagamento e se ha firmato la manleva di responsabilità.", 'volleytnt');
+		_e("L'elenco delle squadre iscritte presenta la composizione di tutte le compagini iscritte al torneo in corso. Per ogni atleta sono mostrati i dati di contatto, la sua situazione di pagamento e se ha firmato la manleva di responsabilità.", 'volleytnt');
 		echo  '</p>';
 	}
 	
@@ -50,91 +50,89 @@ class VolleyTNT_Squadre extends VolleyTNT_AdminPage {
 		global $wpdb;
 		echo '<h3>' . __("Situazione iscrizioni", 'volleytnt') . '</h3>';
 		$squadre = $wpdb->get_results("SELECT `id`, `label`, `categoria` FROM `{$this->prefix}squadre` WHERE `tornei_id`={$this->opts->corrente} ORDER BY `label` ASC" );
-		if ( $squadre ) {
-			$tmp = $wpdb->get_results("
-				SELECT 
-					`{$this->prefix}atleti`.*,
-					`{$this->prefix}squadre_atleti`.`squadre_id`,
-					`{$this->prefix}squadre_atleti`.`pagato`,
-					`{$this->prefix}squadre_atleti`.`manleva` 
-				FROM 
-					`{$this->prefix}squadre`
-				LEFT JOIN `{$this->prefix}squadre_atleti`
-					ON `{$this->prefix}squadre_atleti`.`squadre_id`=`{$this->prefix}squadre`.`id`
-				LEFT JOIN `{$this->prefix}atleti`
-					ON `{$this->prefix}squadre_atleti`.`atleti_id`=`{$this->prefix}atleti`.`id`
-				WHERE 
-					`{$this->prefix}squadre`.`tornei_id`={$this->opts->corrente} 
-				ORDER BY 
-					`{$this->prefix}atleti`.`cognome` ASC,
-					`{$this->prefix}atleti`.`nome` ASC" );
-			$partecipanti = array();
-			if( $tmp ) foreach ( $tmp as $row ) $partecipanti[ $row->squadre_id ][] = $row;
 
-			echo '<div id="vtnt_tabiscrizioni">';
-			echo '<ul>';
-			foreach ( $this->torneo->categorie as $categoria ) {
-				echo '<li><a href="#tab' . $categoria . '">' . $this->l_categorie[ $categoria ] . '</a></li>';
-			}
-			echo '</ul>';
-			
-			foreach ( $this->torneo->categorie as $categoria ) {
-				echo '<div id="tab' . $categoria . '">';
-				echo '<table class="widefat">';
-				echo '<thead><tr>';
-				$headers = '<th>' . __("Squadra", 'volleytnt' ) . '</th><th>' . __("Giocatore", 'volleytnt' ) . '</th><th>' . __("Telefono", 'volleytnt' ) . '</th><th>' . __("E-mail", 'volleytnt' ) . '</th><th>' . __("Pagato", 'volleytnt' ) . '</th><th>' . __("Manleva", 'volleytnt' ) . '</th>';
-				echo $headers;
-				echo '</tr><thead><tbody>';
-				$conta_squadre = $conta_persone = 0;
-				foreach ( $squadre as $sq ) if ( $sq->categoria == $categoria and isset( $partecipanti[ $sq->id ] ) ) {
-					$stampato = false;
-					$conta_squadre++;
-					foreach ( $partecipanti[ $sq->id ] as $atl ) {
-						$conta_persone++;
-						echo ( $conta_squadre % 2 ) ? '<tr class="alternate">' : '<tr>';
-						if ( !$stampato ) {
-							echo '<td rowspan="' . count( $partecipanti[ $sq->id ] ) . '">';
-							echo '<strong>' . $sq->label . '</strong>';
+		$tmp = $wpdb->get_results("
+			SELECT 
+				`{$this->prefix}atleti`.*,
+				`{$this->prefix}squadre_atleti`.`squadre_id`,
+				`{$this->prefix}squadre_atleti`.`pagato`,
+				`{$this->prefix}squadre_atleti`.`manleva` 
+			FROM 
+				`{$this->prefix}squadre`
+			LEFT JOIN `{$this->prefix}squadre_atleti`
+				ON `{$this->prefix}squadre_atleti`.`squadre_id`=`{$this->prefix}squadre`.`id`
+			LEFT JOIN `{$this->prefix}atleti`
+				ON `{$this->prefix}squadre_atleti`.`atleti_id`=`{$this->prefix}atleti`.`id`
+			WHERE 
+				`{$this->prefix}squadre`.`tornei_id`={$this->opts->corrente} 
+			ORDER BY 
+				`{$this->prefix}atleti`.`cognome` ASC,
+				`{$this->prefix}atleti`.`nome` ASC" );
+		$partecipanti = array();
+		if( $tmp ) foreach ( $tmp as $row ) $partecipanti[ $row->squadre_id ][] = $row;
 
-
-							echo '<div class="row-actions">';
-							
-							echo '<span class="standard">';
-							echo '<a href="' . $this->url( 'edit',  $sq->id ) . '">' . __("Modifica", 'volleytnt') . '</a>';
-							echo '</span>';
-							echo ' | ';
-							echo '<span class="delete">';
-							echo '<a href="' . $this->url( 'delete',  $sq->id ) . '" onClick="return confirm(volleytnt.conferma_elimina_squadra);">' . __("Elimina", 'volleytnt') . '</a>';
-							echo '</span>';
-							echo '</div>';
-						
-							echo '</td>';
-							$stampato = true;
-						}
-						echo '<td><strong>' . $atl->cognome . '</strong> ' . $atl->nome . '</td>';
-						echo '<td>' . $atl->telefono . '</td>';
-						echo '<td>' . $atl->mail. '</td>';
-						echo '<td>' . ( ( $atl->pagato ) ? __( 'Sì', 'volleytnt' ) : '&nbsp;' ) . '</td>';
-						echo '<td>' . ( ( $atl->manleva ) ? __( 'Sì', 'volleytnt' ) : '&nbsp;' ) . '</td>';
-						echo '</tr>';	
-					}
-				}
-				echo '</tbody><tfoot>' . $headers . '</tfoot></table>';
-				echo '<p><strong>' . __("Squadre:", 'volleytnt' ) . '</strong> ' . number_format_i18n( $conta_squadre ) . '<br/>';
-				echo '<strong>' . __("Atleti:", 'volleytnt' ) . '</strong> ' . number_format_i18n( $conta_persone ) . '</p>';
-				
-				echo '</div>';
-			}
+		echo '<div id="vtnt_tabiscrizioni">';
+		echo '<ul>';
+		foreach ( $this->torneo->categorie as $categoria ) {
+			echo '<li><a href="#tab' . $categoria . '">' . $this->l_categorie[ $categoria ] . '</a></li>';
 		}
+		echo '</ul>';
 		
+		foreach ( $this->torneo->categorie as $categoria ) {
+			echo '<div id="tab' . $categoria . '">';
+			echo '<table class="widefat">';
+			echo '<thead><tr>';
+			$headers = '<th>' . __("Squadra", 'volleytnt' ) . '</th><th>' . __("Giocatore", 'volleytnt' ) . '</th><th>' . __("Telefono", 'volleytnt' ) . '</th><th>' . __("E-mail", 'volleytnt' ) . '</th><th>' . __("Pagato", 'volleytnt' ) . '</th><th>' . __("Manleva", 'volleytnt' ) . '</th>';
+			echo $headers;
+			echo '</tr><thead><tbody>';
+			$conta_squadre = $conta_persone = 0;
+			foreach ( $squadre as $sq ) if ( $sq->categoria == $categoria and isset( $partecipanti[ $sq->id ] ) ) {
+				$stampato = false;
+				$conta_squadre++;
+				foreach ( $partecipanti[ $sq->id ] as $atl ) {
+					$conta_persone++;
+					echo ( $conta_squadre % 2 ) ? '<tr class="alternate">' : '<tr>';
+					if ( !$stampato ) {
+						echo '<td rowspan="' . count( $partecipanti[ $sq->id ] ) . '">';
+						echo '<strong>' . $sq->label . '</strong>';
+
+
+						echo '<div class="row-actions">';
+						
+						echo '<span class="standard">';
+						echo '<a href="' . $this->url( 'edit',  $sq->id ) . '">' . __("Modifica", 'volleytnt') . '</a>';
+						echo '</span>';
+						echo ' | ';
+						echo '<span class="delete">';
+						echo '<a href="' . $this->url( 'delete',  $sq->id ) . '" onClick="return confirm(volleytnt.conferma_elimina_squadra);">' . __("Elimina", 'volleytnt') . '</a>';
+						echo '</span>';
+						echo '</div>';
+					
+						echo '</td>';
+						$stampato = true;
+					}
+					echo '<td><strong>' . $atl->cognome . '</strong> ' . $atl->nome . '</td>';
+					echo '<td>' . $atl->telefono . '</td>';
+					echo '<td>' . $atl->mail. '</td>';
+					echo '<td>' . ( ( $atl->pagato ) ? __( 'Sì', 'volleytnt' ) : '&nbsp;' ) . '</td>';
+					echo '<td>' . ( ( $atl->manleva ) ? __( 'Sì', 'volleytnt' ) : '&nbsp;' ) . '</td>';
+					echo '</tr>';	
+				}
+			}
+			echo '</tbody><tfoot>' . $headers . '</tfoot></table>';
+			echo '<p><strong>' . __("Squadre:", 'volleytnt' ) . '</strong> ' . number_format_i18n( $conta_squadre ) . '<br/>';
+			echo '<strong>' . __("Atleti:", 'volleytnt' ) . '</strong> ' . number_format_i18n( $conta_persone ) . '</p>';
+			
+			echo '</div>';
+		}		
 	}
 
 	public function salva_squadra( $data ) {
 		global $wpdb;
 		if ( $id_squadra = intval( $data['id'] ) ) {
-			$wpdb->update( "{$this->prefix}squadre", array( 'label' => $data['label'], 'categoria' => $data['categoria'] ), array( 'id' => $id_squadra ) );
+			$wpdb->update( "{$this->prefix}squadre", array( 'label' => $data['label'], 'categoria' => $data['categoria'], 'tornei_id' => $this->opts->corrente ), array( 'id' => $id_squadra ) );
 		} else {
-			$wpdb->insert( "{$this->prefix}squadre", array( 'label' => $data['label'], 'categoria' => $data['categoria'] ) );
+			$wpdb->insert( "{$this->prefix}squadre", array( 'label' => $data['label'], 'categoria' => $data['categoria'], 'tornei_id' => $this->opts->corrente ) );
 			$id_squadra = $wpdb->insert_id;
 		}
 		$wpdb->query("DELETE FROM `{$this->prefix}squadre_atleti` WHERE `squadre_id`=$id_squadra");
