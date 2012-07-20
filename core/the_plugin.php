@@ -37,6 +37,7 @@ class VolleyTNT {
 		$this->register_page('VolleyTNT_Gironi');
 		$this->register_page('VolleyTNT_Partite');
 		$this->register_page('VolleyTNT_Risultati');
+		$this->register_page('VolleyTNT_Finali');
 		$this->register_page('VolleyTNT_Opzioni');
 		
 				
@@ -170,6 +171,32 @@ class VolleyTNT {
 		return $_;
 	}
 	
+	
+	private function get_risultati( $id_torneo ) {
+		global $wpdb;
+		$dati = $wpdb->get_results("SELECT
+									  `sq1`.`label`              AS `nome1`,
+									  `sq2`.`label`              AS `nome2`,
+									  `{$this->prefix}partite`.*,
+									  DATE_FORMAT(`{$this->prefix}slots`.`giorno`, '" . volleytnt_date_format('sql') . "') AS `giorno`,
+									  DATE_FORMAT(`{$this->prefix}slots`.`inizio`, '%k:%i') AS `inizio`,
+									  DATE_FORMAT(`{$this->prefix}slots`.`fine`, '%k:%i') AS `fine`,
+									  `{$this->prefix}slots`.`campo`
+									FROM `{$this->prefix}partite`
+									  LEFT JOIN `{$this->prefix}slots`
+									    ON `{$this->prefix}slots`.`id` = `{$this->prefix}partite`.`slots_id`
+									  LEFT JOIN `{$this->prefix}squadre` AS `sq1`
+									    ON `sq1`.`id` = `{$this->prefix}partite`.`squadra_1`
+									  LEFT JOIN `{$this->prefix}squadre` AS `sq2`
+									    ON `sq2`.`id` = `{$this->prefix}partite`.`squadra_2`
+									WHERE `{$this->prefix}partite`.`tornei_id` = $id_torneo
+										AND `{$this->prefix}partite`.`girone` <> 0
+									ORDER BY `{$this->prefix}partite`.`categoria` ASC, `{$this->prefix}partite`.`girone` ASC");
+		$_ = array();
+		if ( $dati ) foreach ( $dati as $row ) $_[ $row->categoria ][ $row->girone ][ $row->id ] = $row;
+		return $_;
+	}
+	
 	private function get_squadre( $id_torneo ) {
 		global $wpdb;
 		$dati = $wpdb->get_results("
@@ -204,6 +231,152 @@ class VolleyTNT {
 		return $_;
 	}
 	
+	
+	private function get_classifiche( $id_torneo ) {
+		global $wpdb;
+		$work = array();
+		$dati = $wpdb->get_results("	SELECT 
+											`{$this->prefix}partite`.*,
+											`sq1`.`label` AS `label_1`,
+											`sq2`.`label` AS `label_2`
+										FROM 
+											`{$this->prefix}partite` 
+										LEFT JOIN `{$this->prefix}squadre` AS `sq1`
+											ON `{$this->prefix}partite`.`squadra_1`=`sq1`.`id`
+										LEFT JOIN `{$this->prefix}squadre` AS `sq2`
+											ON `{$this->prefix}partite`.`squadra_2`=`sq2`.`id`
+										WHERE 
+											`{$this->prefix}partite`.`tornei_id`=$id_torneo AND `{$this->prefix}partite`.`girone`<>0");
+		if ( $dati ) {
+			foreach ( $dati as $row ) {
+				if ( !isset( $work[ $row->categoria ][ $row->girone ] ) ) $work[ $row->categoria ][ $row->girone ] = array();
+
+				if ( !isset( $work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ] ) )
+					$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ] = array(	'giocate'		=> 0,
+																							'vinti'			=> 0,
+																							'persi'			=> 0,
+																							'fatti'			=> 0,
+																							'subiti'		=> 0,
+																							'id'			=> $row->squadra_1,
+																							'label'			=> $row->label_1 );
+				if ( !isset( $work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ] ) ) 
+					$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ] = array(	'giocate'		=> 0,
+																							'vinti'			=> 0,
+																							'persi'			=> 0,
+																							'fatti'			=> 0,
+																							'subiti'		=> 0,
+																							'id'			=> $row->squadra_2,
+																							'label'			=> $row->label_2  );
+
+				
+				$set1_sq1 = absint( $row->set1_sq1 );
+				$set1_sq2 = absint( $row->set1_sq2 );
+				$set2_sq1 = absint( $row->set2_sq1 );
+				$set2_sq2 = absint( $row->set2_sq2 );
+				$set3_sq1 = absint( $row->set3_sq1 );
+				$set3_sq2 = absint( $row->set3_sq2 );
+				if ( $this->torneo->set_partita == 5 ) {
+					$set4_sq1 = absint( $row->set4_sq1 );
+					$set4_sq2 = absint( $row->set4_sq2 );
+					$set5_sq1 = absint( $row->set5_sq1 );
+					$set5_sq2 = absint( $row->set5_sq2 );
+				}
+				$vinti1 = $vinti2 = 0;
+				if ( ( $set1_sq1 or $set1_sq2 ) and ( $set2_sq1 or $set2_sq2 ) ) { // la partita è stata giocata
+					$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['giocate']++;
+					$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['giocate']++;
+					$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['fatti'] += $set1_sq1 + $set2_sq1 + $set3_sq1;
+					$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['fatti'] += $set1_sq2 + $set2_sq2 + $set3_sq2;
+					$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['subiti'] += $set1_sq2 + $set2_sq2 + $set3_sq2;
+					$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['subiti'] += $set1_sq1 + $set2_sq1 + $set3_sq1;
+					
+					if ( $this->torneo->set_partita == 5 ) {
+						$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['fatti'] += $set4_sq1 + $set5_sq1;
+						$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['fatti'] += $set4_sq2 + $set5_sq2;
+						$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['subiti'] += $set4_sq2 + $set5_sq2;
+						$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['subiti'] += $set4_sq1 + $set5_sq1;
+					}
+					
+					if ( $set1_sq1 > $set1_sq2 ) {
+						$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['vinti']++;
+						$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['persi']++;
+					} else {
+						$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['vinti']++;
+						$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['persi']++;
+					}
+					if ( $set2_sq1 > $set2_sq2 ) {
+						$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['vinti']++;
+						$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['persi']++;
+					} else {
+						$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['vinti']++;
+						$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['persi']++;
+					}
+					if ( $this->torneo->set_partita == 5 ) {
+						if ( $set3_sq1 > $set3_sq2 ) {
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['vinti']++;
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['persi']++;
+						} else {
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['vinti']++;
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['persi']++;
+						}
+						if ( $set4_sq1 or $set4_sq2 ) if ( $set4_sq1 > $set4_sq2 ) {
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['vinti']++;
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['persi']++;
+						} else {
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['vinti']++;
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['persi']++;
+						}
+						if ( $set5_sq1 or $set5_sq2 ) if ( $set5_sq1 > $set5_sq2 ) {
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['vinti']++;
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['persi']++;
+						} else {
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['vinti']++;
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['persi']++;
+						}
+					} else {
+						if ( $set3_sq1 or $set3_sq2 ) if ( $set3_sq1 > $set3_sq2 ) {
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['vinti']++;
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['persi']++;
+						} else {
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['vinti']++;
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['persi']++;
+						}
+					}
+				}
+			}
+			
+			foreach ( $work as $categoria => $i_gironi ) { 
+				foreach ( $i_gironi as $girone => $squadre ) { 
+					foreach ( $squadre as $id_squadra => $dati ) {
+						$dati['q_vinti'] = $dati['giocate'] ? round( $dati['vinti'] / $dati['giocate'], 2 ) : 0;
+						$dati['d_set'] = $dati['vinti'] - $dati['persi'];
+						$dati['qd_set'] = $dati['giocate'] ? round( $dati['d_set'] / $dati['giocate'], 2 ) : 0;
+						$dati['q_fatti'] = $dati['giocate'] ? round( $dati['fatti'] / $dati['giocate'], 2 ) : 0;
+						$dati['d_punti'] = $dati['fatti'] - $dati['subiti'];
+						$dati['qd_punti'] = $dati['giocate'] ? round( $dati['d_punti'] / $dati['giocate'], 2 ) : 0;
+						$work[ $categoria ][ $girone ][ $id_squadra ] = $dati;
+					}
+					usort( $work[ $categoria ][ $girone ], array( $this, 'sort_classifica') );
+				}
+				ksort( $work[ $categoria ] );
+			}
+			ksort( $work );	
+		}
+		return $work;	
+	}
+	
+	private function sort_classifica( $a, $b ) {
+		if ( $a['vinti'] == $b['vinti'] ) {
+			if ( $a['qd_set'] == $b['qd_set'] ) {
+				if ( $a['qd_punti'] == $b['qd_punti'] ) {
+					if ( $a['giocate'] == $b['giocate'] ) {
+						return 0;
+					} else return $a['giocate'] > $b['giocate'] ? 1 : -1;
+				} else return $a['qd_punti'] < $b['qd_punti'] ? 1 : -1;
+			} else return $a['qd_set'] < $b['qd_set'] ? 1 : -1;	
+		} else return $a['vinti'] < $b['vinti'] ? 1 : -1;
+	}
+
 	public function sc_squadre( $atts, $content = '' ) {
 		extract( shortcode_atts( array(
 			'torneo' => $this->opts->corrente
@@ -225,6 +398,137 @@ class VolleyTNT {
 		return $_ . '</div>';
 	}
 	
+	
+	public function sc_risultati( $atts, $content = '' ) {
+		extract( shortcode_atts( array(
+			'torneo' => $this->opts->corrente
+		), $atts ) );
+		if ( !$torneo ) return '';
+		$_ = '<div class="tornei_risultati">';
+		$dati = $this->get_risultati( $torneo );
+		foreach ( $dati as $categoria => $gironi ) foreach ( $gironi as $girone => $partite ) {
+			$_ .= '<h3>Girone ' . $categoria . $girone . '</h3>';
+			$_ .= '<table>';
+			$_ .= '<thead><tr>';
+			$_ .= '<th class="partita">' . __('Partita', 'volleytnt') . '</th>';
+			$_ .= '<th class="squadre">' . __('Squadre', 'volleytnt') . '</th>';
+			$_ .= '<th class="risultato">' . __('Risultato', 'volleytnt') . '</th>';
+			$_ .= '<th class="set set1">' . sprintf( __('%d&ordm; set', 'volleytnt'), 1 ) . '</th>';
+			$_ .= '<th class="set set2">' . sprintf( __('%d&ordm; set', 'volleytnt'), 2 ) . '</th>';
+			$_ .= '<th class="set set3">' . sprintf( __('%d&ordm; set', 'volleytnt'), 3 ) . '</th>';
+			if ( $this->torneo->set_partita == 5 ) {
+				$_ .= '<th class="set set4">' . sprintf( __('%d&ordm; set', 'volleytnt'), 4 ) . '</th>';
+				$_ .= '<th class="set set5">' . sprintf( __('%d&ordm; set', 'volleytnt'), 5 ) . '</th>';
+			}
+			$_ .= '</tr></thead>';
+			$_ .= '<tbody>';
+			foreach ( $partite as $id_partita => $row ) {
+				
+				$set1 = $set2 = 0;
+				if ( !$row->set1_sq1 and !$row->set1_sq2 ) {
+					$row->set1_sq1 = $row->set1_sq2 = '';
+				} else if ( $row->set1_sq1 > $row->set1_sq2 ) $set1++; else $set2++;
+				if ( !$row->set2_sq1 and !$row->set2_sq2 ) {
+					$row->set2_sq1 = $row->set2_sq2 = '';
+				} else if ( $row->set2_sq1 > $row->set2_sq2 ) $set1++; else $set2++;
+				if ( !$row->set3_sq1 and !$row->set3_sq2 ) {
+					$row->set3_sq1 = $row->set3_sq2 = '';
+				} else if ( $row->set3_sq1 > $row->set3_sq2 ) $set1++; else $set2++;
+				if ( $this->torneo->set_partita == 5 ) {
+					if ( !$row->set4_sq1 and !$row->set4_sq2 ) {
+						$row->set4_sq1 = $row->set4_sq2 = '';
+					} else if ( $row->set4_sq1 > $row->set4_sq2 ) $set1++; else $set2++;
+					if ( !$row->set5_sq1 and !$row->set5_sq2 ) {
+						$row->set5_sq1 = $row->set5_sq2 = '';
+					} else if ( $row->set5_sq1 > $row->set5_sq2 ) $set1++; else $set2++;
+				}
+				if ( !$set1 and !$set2 ) $set1 = $set2 = '';
+				$_ .= '<tr>';
+				
+				$_ .= '<th>';
+				$_ .= sprintf( __('Girone %s', 'volleytnt'), $row->categoria . $row->girone );
+				if ( $row->campo ) $_ .= '<br/>' . sprintf( __('%s, %s-%s, campo %s', 'volleytnt'), $row->giorno, $row->inizio, $row->fine, $row->campo );
+				$_ .= '</th>';
+				
+				$_ .= '<td>';
+				$_ .= '<div class="squadra sq1">' . $row->nome1 . '</div>';
+				$_ .= '<div class="squadra sq2">' . $row->nome2 . '</div>';
+				$_ .= '</td>';
+				
+				$_ .= '<td>';
+				$_ .= '<div class="risultato sq1">' . $set1 . '</div>';
+				$_ .= '<div class="risultato sq2">' . $set2 . '</div>';
+				$_ .= '</td>';
+				
+				$_ .= '<td>';
+				$_ .= '<div class="riga sq1">' . $row->set1_sq1 . '</div>';
+				$_ .= '<div class="riga sq2">' . $row->set1_sq2 . '</div>';
+				$_ .= '</td>';
+				
+				$_ .= '<td>';
+				$_ .= '<div class="riga sq1">' . $row->set2_sq1 . '</div>';
+				$_ .= '<div class="riga sq2">' . $row->set2_sq2 . '</div>';
+				$_ .= '</td>';
+				
+				$_ .= '<td>';
+				$_ .= '<div class="riga sq1">' . $row->set3_sq1 . '</div>';
+				$_ .= '<div class="riga sq2">' . $row->set3_sq2 . '</div>';
+				$_ .= '</td>';
+
+				if ( $this->torneo->set_partita == 5 ) {
+				
+					$_ .= '<td>';
+					$_ .= '<div class="riga sq1">' . $row->set4_sq1 . '</div>';
+					$_ .= '<div class="riga sq2">' . $row->set4_sq2 . '</div>';
+					$_ .= '</td>';
+					
+					$_ .= '<td>';
+					$_ .= '<div class="riga sq1">' . $row->set5_sq1 . '</div>';
+					$_ .= '<div class="riga sq2">' . $row->set5_sq2 . '</div>';
+					$_ .= '</td>';
+
+				}
+								
+				$_ .= '<tr>';
+			}
+			$_ .= '</tbody></table>';
+		}
+		return $_ . '</div>';
+	}
+
+	
+	public function sc_classifiche_gironi( $atts, $content = '' ) {
+		extract( shortcode_atts( array(
+			'torneo' => $this->opts->corrente
+		), $atts ) );
+		if ( !$torneo ) return '';
+		$_ = '<div class="tornei_classifiche_gironi">';
+		$classifiche = $this->get_classifiche( $torneo );
+		foreach ( $classifiche as $categoria => $gironi ) foreach ( $gironi as $girone => $squadre ) {
+			$pos = 1;
+			$_ .= '<h3>' . sprintf( __('Girone %s', 'volleytnt'), $categoria . $girone ) . '</h3>';
+			$_ .= '<table><thead><tr>';
+			$_ .= '<th class="posizione">' . __('Pos.', 'volleytnt') . '</th>';
+			$_ .= '<th class="squadra">' . __('Squadra', 'volleytnt') . '</th>';
+			$_ .= '<th class="partite">' . __('Partite', 'volleytnt') . '</th>';
+			$_ .= '<th class="set">' . __('Set', 'volleytnt') . '</th>';
+			$_ .= '<th class="punti">' . __('Punti', 'volleytnt') . '</th>';
+			$_ .= '</tr></thead><tbody>';
+			foreach ( $squadre as $s ) {
+				$_ .= '<tr>';
+				$_ .= '<td class="posizione">' . $pos . '&ordm;</td>';
+				$_ .= '<td class="squadra">' . $s['label'] . '</td>';
+				$_ .= '<td class="partite">' . $s['giocate'] . '</td>';
+				$_ .= '<td class="set">' . $s['vinti'] . 'v, ' . $s['persi'] . 'p <em>(' . $s['qd_set'] . ')</em></td>';
+				$_ .= '<td class="punti">' . $s['fatti'] . 'f, ' . $s['subiti'] . 's <em>(' . $s['qd_punti'] . ')</em></td>';
+				$_ .= '</tr>';
+				$pos++;
+			}
+			$_ .= '</tbody></table>';
+		}
+		
+		return $_ . '</div>';
+	}
 	
 	public function sc_calendario( $atts, $content = '' ) {
 		extract( shortcode_atts( array(
@@ -352,6 +656,158 @@ class VolleyTNT {
 		echo '</div>';
 	}
 	
+}
+
+class VolleyTNT_Tree {
+	public $torneo = false;
+	public $squadre = array();
+	public $finali = array();
+	
+	public function __construct( $torneo = null ) {
+		global $wpdb;
+		$torneo = is_null( $torneo ) ? 	$this->opts->corrente : absint( $torneo );
+		$this->torneo = $wpdb->get_row("SELECT * FROM `{$this->prefix}tornei` WHERE `id`={$torneo}");
+		if ( $tmp = $wpdb->get_results("SELECT * FROM `{$this->prefix}partite` WHERE `finale`<>'' AND `tornei_id`={$torneo} AND `visibile`=1" ) ) {
+			foreach ( $tmp as $row ) $this->finali[ $row->categoria ][ $row->finale ] = $row;
+		}
+		if ( $tmp = $wpdb->get_results("SELECT `id`, `label`, `categoria` FROM `{$this->prefix}squadre` WHERE `tornei_id`={$torneo}" ) ) {
+			foreach ( $tmp as $row ) $this->squadre[ $row->categoria ][ $row->id ] = $row->label;
+		}
+		if ( isset( $this->squadre['M'] ) ) asort( $this->squadre['M'] );
+		if ( isset( $this->squadre['F'] ) ) asort( $this->squadre['F'] );
+		if ( isset( $this->squadre['X'] ) ) asort( $this->squadre['X'] );
+	}
+
+	final public function __get( $attr ) {
+		global $VolleyTNT;
+		if ( isset( $VolleyTNT->$attr ) ) {
+			$this->$attr = &$VolleyTNT->$attr;
+			return $this->$attr;
+		} else {
+			return false;
+		}
+	}
+	
+	private function partita( $categoria, $id ) {
+		if ( isset( $this->finali[ $categoria ][ $id ] ) ) {
+			$p = $this->finali[ $categoria ][ $id ];
+			$class = 'partita';
+		} else {
+			$p = new stdClass();
+			$p->categoria = $categoria;
+			$p->squadra_1 = 0;
+			$p->squadra_2 = 0;
+			$p->set1_sq1 = '';
+			$p->set1_sq2 = '';
+			$p->set2_sq1 = '';
+			$p->set2_sq2 = '';
+			$p->set3_sq1 = '';
+			$p->set3_sq2 = '';
+			$p->set4_sq1 = '';
+			$p->set4_sq2 = '';
+			$p->set5_sq1 = '';
+			$p->set5_sq2 = '';
+			$class = 'partita nongiocata____';
+		}
+		
+			$p = new stdClass();
+			$p->categoria = $categoria;
+			$p->squadra_1 = 20;
+			$p->squadra_2 = 22;
+			$p->set1_sq1 = 21;
+			$p->set1_sq2 = 12;
+			$p->set2_sq1 = 12;
+			$p->set2_sq2 = 21;
+			$p->set3_sq1 = 21;
+			$p->set3_sq2 = 12;
+			$p->set4_sq1 = 12;
+			$p->set4_sq2 = 21;
+			$p->set5_sq1 = 21;
+			$p->set5_sq2 = 12;
+			$class = 'partita';
+
+		$p->set1 = $p->set2 = 0;
+		if ( $p->set1_sq1 or $p->set1_sq2 ) if ( $p->set1_sq1 > $p->set1_sq2 ) $p->set1++; else $p->set2++;
+		if ( $p->set2_sq1 or $p->set2_sq2 ) if ( $p->set2_sq1 > $p->set2_sq2 ) $p->set1++; else $p->set2++;
+		if ( $p->set3_sq1 or $p->set3_sq2 ) if ( $p->set3_sq1 > $p->set3_sq2 ) $p->set1++; else $p->set2++;
+		if ( !$p->set1 and !$p->set2 ) $p->set1 = $p->set2 = $p->set1_sq1 = $p->set1_sq2 = $p->set2_sq1 = $p->set2_sq2 = $p->set3_sq1 = $p->set3_sq2 = '';
+		$class .= ' p' . $id;
+		?>
+		<div class="<?php echo $class; ?>" squadra_1="<?php echo $p->squadra_1; ?>" squadra_2="<?php echo $p->squadra_2; ?>" categoria="<?php echo $p->categoria; ?>" id_partita="<?php echo $id; ?>">
+			<div class="squadra squadra1"><?php echo isset( $this->squadre[ $p->categoria ][ $p->squadra_1 ] ) ? $this->squadre[ $p->categoria ][ $p->squadra_1 ] : ''; ?></div>
+			<div class="separatore">
+				<div class="punti punti1">
+					<div class="risultato risultato1"><?php echo $p->set1; ?></div>
+					<span class="set set1 sq1 set1_sq1"><?php echo $p->set1_sq1; ?></span>
+					<span class="set set2 sq1 set2_sq1"><?php echo $p->set2_sq1; ?></span>
+					<span class="set set3 sq1 set3_sq1"><?php echo $p->set3_sq1; ?></span>
+				</div>
+				<div class="sottoseparatore"></div>
+				<div class="punti punti2">
+					<div class="risultato risultato2"><?php echo $p->set2; ?></div>
+					<span class="set set1 sq2 set1_sq2"><?php echo $p->set1_sq2; ?></span>
+					<span class="set set2 sq2 set2_sq2"><?php echo $p->set2_sq2; ?></span>
+					<span class="set set3 sq2 set3_sq2"><?php echo $p->set3_sq2; ?></span>
+				</div>
+			</div>
+			<div class="squadra squadra2"><?php echo isset( $this->squadre[ $p->categoria ][ $p->squadra_2 ] ) ? $this->squadre[ $p->categoria ][ $p->squadra_2 ] : ''; ?></div>
+		</div>
+		<?php
+	}
+
+	public function show( $categoria ) {
+		$this->torneo->finali = 32;
+
+		echo '<div class="tabellonefinale base' . $this->torneo->finali . '">';
+		echo '<div class="fasi">';
+		if ( $this->torneo->finali >= 32 ) echo '<h4>' . __('Trentaduesimi', 'volleytnt') . '</h4>';
+		if ( $this->torneo->finali >= 16 ) echo '<h4>' . __('Sedicesimi', 'volleytnt') . '</h4>';
+		if ( $this->torneo->finali >= 8 ) echo '<h4>' . __('Ottavi', 'volleytnt') . '</h4>';
+		if ( $this->torneo->finali >= 4 ) echo '<h4>' . __('Quarti', 'volleytnt') . '</h4>';
+		if ( $this->torneo->finali >= 2 ) echo '<h4>' . __('Semifinali', 'volleytnt') . '</h4>';
+		echo '<h4>' . __('Finalina', 'volleytnt') . '</h4>';
+		echo '<h4>' . __('Finale', 'volleytnt') . '</h4>';
+		echo '<br style="clear:both" />';
+		echo '</div>';
+		
+		if ( $this->torneo->finali >= 32 ) {
+			echo '<div class="trentaduesimi colonna">';
+			for ( $i = 1; $i <= 32; $i++ ) $this->partita( $categoria, '32_' . $i );
+			echo '</div>';
+		}
+		if ( $this->torneo->finali >= 16 ) {
+			echo '<div class="sedicesimi colonna">';
+			for ( $i = 1; $i <= 16; $i++ ) $this->partita( $categoria, '16_' . $i );
+			echo '</div>';
+		}
+		if ( $this->torneo->finali >= 8 ) {
+			echo '<div class="ottavi colonna">';
+			for ( $i = 1; $i <= 8; $i++ ) $this->partita( $categoria, '8_' . $i );
+			echo '</div>';
+		}
+		if ( $this->torneo->finali >= 4 ) {
+			echo '<div class="quarti colonna">';
+			for ( $i = 1; $i <= 4; $i++ ) $this->partita( $categoria, '4_' . $i );
+			echo '</div>';
+		}
+		if ( $this->torneo->finali >= 2 ) {
+			echo '<div class="semifinali colonna">';
+			$this->partita( $categoria, '2_1' );
+			$this->partita( $categoria, '2_2' );
+			echo '</div>';
+
+			echo '<div class="finalina colonna">';
+			$this->partita( $categoria, '1_1' );
+			echo '</div>';
+		}
+		
+		echo '<div class="finale colonna">';
+		$this->partita( $categoria, '0_1' );
+		echo '</div>';
+
+		echo '</div>';
+		echo '<br style="clear:both" />';
+	}
 }
 
 global $VolleyTNT;

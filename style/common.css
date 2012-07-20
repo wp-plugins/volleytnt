@@ -1,0 +1,391 @@
+.tabellonefinale .fasi h4,
+.tabellonefinale .colonna {
+	float:left;
+	width:120px;
+	clear:none;
+}
+
+.tabellonefinale .partita {
+	-moz-border-radius: 8px; 
+	-webkit-border-radius: 8px; 
+	-khtml-border-radius: 8px; 
+	border-radius: 8px;
+}
+
+.tabellonefinale .partita .squadra {
+	height:20px;
+	line-height:20px;
+	padding-left:3px;
+}
+
+.tabellonefinale .partita .risultato {
+    float: right;
+    font-style: normal;
+    font-weight: bold;
+    font-size:16px;
+    margin-right: 5px;
+}
+.tabellonefinale .partita .risultato.risultato1 {
+	margin-top:1px;
+}
+.tabellonefinale .partita .separatore {
+	border-style:solid;
+	border-color:#000;
+	border-width:2px 2px 2px 0;
+	-moz-border-radius-topright: 8px; 
+	-webkit-border-top-right-radius: 8px; 
+	-khtml-border-top-right-radius: 8px; 
+	border-top-right-radius: 8px;
+	-moz-border-radius-bottomright: 8px; 
+	-webkit-border-bottom-right-radius: 8px; 
+	-khtml-border-bottom-right-radius: 8px; 
+	border-bottom-right-radius: 8px;
+}
+
+.tabellonefinale .partita.nongiocata .separatore {
+	border-color:transparent;
+}
+
+.tabellonefinale .partita.nongiocata .squadra,
+.tabellonefinale .partita.nongiocata .punti {
+	color:transparent;
+}
+
+.tabellonefinale .partita .punti {
+	color:#aaa;
+	font-size:10px;
+	line-height:10px;
+	font-style:italic;
+	margin:2px;
+	height:15px;	
+}
+
+.tabellonefinale .partita .punti2 {
+	vertical-align:text-bottom;
+}
+
+.tabellonefinale .partita .punti span {
+	padding-right:4px;
+}
+
+
+.tabellonefinale .colonna.trentaduesimi .partita.p32_32,
+.tabellonefinale .colonna.sedicesimi .partita.p16_16,
+.tabellonefinale .colonna.ottavi .partita.p8_8,
+.tabellonefinale .colonna.quarti .partita.p4_4,
+.tabellonefinale .colonna.semifinali .partita.p2_2 {
+	margin-bottom:0px;
+}
+
+.tabellonefinale.base32 .trentaduesimi .partita,
+.tabellonefinale.base16 .sedicesimi .partita,
+.tabellonefinale.base8 .ottavi .partita,
+.tabellonefinale.base4 .quarti .partita,
+.tabellonefinale.base2 .semifinali .partita {
+	margin-bottom:15px;
+}
+
+.tabellonefinale.base32 .trentaduesimi .separatore,
+.tabellonefinale.base16 .sedicesimi .separatore,
+.tabellonefinale.base8 .ottavi .separatore,
+.tabellonefinale.base4 .quarti .separatore,
+.tabellonefinale.base2 .semifinali .separatore,
+.tabellonefinale.base1 .finale .separatore {
+	height:30px;	
+}
+
+.tabellonefinale.base32 .trentaduesimi .sottoseparatore,
+.tabellonefinale.base16 .sedicesimi .sottoseparatore,
+.tabellonefinale.base8 .ottavi .sottoseparatore,
+.tabellonefinale.base4 .quarti .sottoseparatore,
+.tabellonefinale.base2 .semifinali .sottoseparatore,
+.tabellonefinale.base1 .finale .sottoseparatore {
+	height:0px;	
+}
+
+.tabellonefinale.base32 .sedicesimi .partita,
+.tabellonefinale.base16 .ottavi .partita,
+.tabellonefinale.base8 .quarti .partita,
+.tabellonefinale.base4 .semifinali .partita {
+	margin-top:16px;
+	margin-bottom:48px;
+}
+
+.tabellonefinale.base32 .sedicesimi .separatore,
+.tabellonefinale.base16 .ottavi .separatore,
+.tabellonefinale.base8 .quarti .separatore,
+.tabellonefinale.base4 .semifinali .separatore {
+	height:86px;	
+}
+
+.tabellonefinale.base32 .sedicesimi .sottoseparatore,
+.tabellonefinale.base16 .ottavi .sottoseparatore,
+.tabellonefinale.base8 .quarti .sottoseparatore,
+.tabellonefinale.base4 .semifinali .sottoseparatore {
+	height:54px;	
+}
+
+.tabellonefinale.base32 .ottavi .partita,
+.tabellonefinale.base16 .quarti .partita,
+.tabellonefinale.base8 .semifinali .partita {
+	margin-top:60px;
+	margin-bottom:136px;
+}
+
+.tabellonefinale.base32 .ottavi .separatore,
+.tabellonefinale.base16 .quarti .separatore,
+.tabellonefinale.base8 .semifinali .separatore {
+	height:176px;	
+}
+
+.tabellonefinale.base32 .ottavi .sottoseparatore,
+.tabellonefinale.base16 .quarti .sottoseparatore,
+.tabellonefinale.base8 .semifinali .sottoseparatore {
+	height:144px;	
+}
+
+.tabellonefinale.base32 .quarti .partita,
+.tabellonefinale.base16 .semifinali .partita {
+	margin-top:149px;
+	margin-bottom:314px;
+}
+
+.tabellonefinale.base32 .quarti .separatore,
+.tabellonefinale.base16 .semifinali .separatore {
+	height:354px;	
+}
+
+.tabellonefinale.base32 .quarti .sottoseparatore,
+.tabellonefinale.base16 .semifinali .sottoseparatore {
+	height:322px;	
+}
+
+.tabellonefinale.base32 .semifinali .partita {
+	margin-top:327px;
+	margin-bottom:670px;
+}
+
+.tabellonefinale.base32 .semifinali .separatore {
+	height:710px;	
+}
+
+.tabellonefinale.base32 .semifinali .sottoseparatore {
+	height:677px;	
+}
+
+
+
+
+
+
+.tabellonefinale.base32 {
+	width: 860px;
+}
+
+.tabellonefinale.base32 .colonna {
+	height:2860px;
+}
+
+.tabellonefinale.base32 .finalina .partita {
+	margin-top:683px;
+}
+
+.tabellonefinale.base32 .finalina .separatore {
+	height:1422px;	
+}
+
+.tabellonefinale.base32 .finalina .sottoseparatore {
+	height:1390px;	
+}
+
+.tabellonefinale.base32 .finale .partita {
+	margin-top:783px;
+}
+
+.tabellonefinale.base32 .finale .separatore {
+	height:1222px;	
+}
+
+.tabellonefinale.base32 .finale .sottoseparatore {
+	height:1190px;	
+}
+
+
+
+
+
+
+
+
+
+
+.tabellonefinale.base16 {
+	width: 740px;
+}
+
+.tabellonefinale.base16 .colonna {
+	height:1430px;
+}
+
+.tabellonefinale.base16 .finalina .partita {
+	margin-top:322px;
+}
+
+.tabellonefinale.base16 .finalina .separatore {
+	height:700px;	
+}
+
+.tabellonefinale.base16 .finalina .sottoseparatore {
+	height:668px;	
+}
+
+.tabellonefinale.base16 .finale .partita {
+	margin-top:422px;
+}
+
+.tabellonefinale.base16 .finale .separatore {
+	height:500px;	
+}
+
+.tabellonefinale.base16 .finale .sottoseparatore {
+	height:468px;	
+}
+
+
+
+
+
+
+
+
+
+.tabellonefinale.base8 {
+	width: 620px;
+}
+
+.tabellonefinale.base8 .colonna {
+	height:715px;
+}
+
+.tabellonefinale.base8 .finalina .partita {
+	margin-top:150px;
+}
+
+.tabellonefinale.base8 .finalina .separatore {
+	height:352px;	
+}
+
+.tabellonefinale.base8 .finalina .sottoseparatore {
+	height:320px;	
+}
+
+.tabellonefinale.base8 .finale .partita {
+	margin-top:200px;
+}
+
+.tabellonefinale.base8 .finale .separatore {
+	height:250px;	
+}
+
+.tabellonefinale.base8 .finale .sottoseparatore {
+	height:218px;	
+}
+
+
+
+
+
+
+
+
+
+.tabellonefinale.base4 {
+	width: 500px;
+}
+
+.tabellonefinale.base4 .colonna {
+	height:365px;
+}
+
+.tabellonefinale.base4 .finalina .partita {
+	margin-top:60px;
+}
+
+.tabellonefinale.base4 .finalina .separatore {
+	height:176px;	
+}
+
+.tabellonefinale.base4 .finalina .sottoseparatore {
+	height:144px;	
+}
+
+.tabellonefinale.base4 .finale .partita {
+	margin-top:90px;
+}
+
+.tabellonefinale.base4 .finale .separatore {
+	height:116px;	
+}
+
+.tabellonefinale.base4 .finale .sottoseparatore {
+	height:84px;	
+}
+
+
+
+
+
+
+
+
+
+
+.tabellonefinale.base2 {
+	width: 380px;
+}
+
+.tabellonefinale.base2 .colonna {
+	height:190px;
+}
+
+.tabellonefinale.base2 .finalina .partita {
+	margin-top:16px;
+}
+
+.tabellonefinale.base2 .finalina .separatore {
+	height:86px;	
+}
+
+.tabellonefinale.base2 .finalina .sottoseparatore {
+	height:54px;	
+}
+
+.tabellonefinale.base2 .finale .partita {
+	margin-top:40px;
+}
+
+.tabellonefinale.base2 .finale .separatore {
+	height:39px;	
+}
+
+.tabellonefinale.base2 .finale .sottoseparatore {
+	height:7px;	
+}
+
+
+
+
+
+
+
+
+
+
+
+.tabellonefinale.base1 {
+	width: 140px;
+}
+
+.tabellonefinale.base1 .colonna {
+	height:90px;
+}
