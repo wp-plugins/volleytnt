@@ -1,6 +1,6 @@
 jQuery( function ( $ ) {
 
-	$('div.accordion').accordion( { collapsible: true } );
+	$('div.accordion').accordion( { collapsible: true, autoHeight: false } );
 	
 	$('#rigenerapartitegironi').click( function () {
 		return confirm( volleytnt.rigenerapartitegironi );

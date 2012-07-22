@@ -26,11 +26,12 @@ class VolleyTNT {
 		require_once( $this->path . DIRECTORY_SEPARATOR . 'core' . DIRECTORY_SEPARATOR . 'form.php' );
 		require_once( $this->path . DIRECTORY_SEPARATOR . 'core' . DIRECTORY_SEPARATOR . 'adminpage.php' );
 
-		add_action( 'init',									array( $this, 'init' ) );
-		add_action( 'admin_menu',							array( $this, 'admin_menu' ) );
-		add_action( 'admin_enqueue_scripts',				array( $this, 'admin_enqueue_scripts' ) );
+		add_action( 'init',						array( $this, 'init' ) );
+		add_action( 'admin_menu',				array( $this, 'admin_menu' ) );
+		add_action( 'admin_enqueue_scripts',	array( $this, 'admin_enqueue_scripts' ) );
+		add_action( 'template_redirect',		array( $this, 'template_redirect' ) );
 		
-		add_filter( 'plugin_row_meta',						array( $this, 'plugin_row_meta' ), 10, 4 );
+		add_filter( 'plugin_row_meta',			array( $this, 'plugin_row_meta' ), 10, 4 );
 
 		$this->register_page('VolleyTNT_Home');
 		$this->register_page('VolleyTNT_Squadre');
@@ -47,6 +48,10 @@ class VolleyTNT {
 		add_shortcode( 'volleytnt_squadre', array( $this, 'sc_squadre' ) );
 		add_shortcode( 'volleytnt_finali', array( $this, 'sc_finali' ) );
 		
+	}
+	
+	public function template_redirect() {
+		wp_enqueue_style('volleytnt_common');
 	}
 	
 	public function plugin_row_meta( $plugin_meta, $plugin_file, $plugin_data, $status ) {
@@ -67,12 +72,13 @@ class VolleyTNT {
 										'X'	=> __("Misto", 'volleytnt') );
 		$this->l_set_partita = array(	'3' => __("Alla meglio dei 3", 'volleytnt'),
 										'5'	=> __("Alla meglio dei 5", 'volleytnt') );
-		$this->l_finali = array(		'32'=> __("Trentaduesimi di finale", 'volleytnt'),
-										'16'=> __("Sedicesimi di finale", 'volleytnt'),
-										'8'	=> __("Ottavi di finale", 'volleytnt'),
-										'4'	=> __("Quarti di finale", 'volleytnt'),
+		$this->l_finali = array(		'0' => __("Non giocato", 'volleytnt'),
+										'1'	=> __("Finale", 'volleytnt'),
 										'2'	=> __("Semifinali", 'volleytnt'),
-										'1'	=> __("Finale", 'volleytnt') );
+										'4'	=> __("Quarti", 'volleytnt'),
+										'8'	=> __("Ottavi", 'volleytnt'),
+										'16'=> __("Sedicesimi", 'volleytnt'),
+										'32'=> __("Trentaduesimi", 'volleytnt') );
 
 		wp_register_style( 'volleytnt_common', $this->url . '/style/common.css' );
 		wp_register_style( 'volleytnt_jqueryui', $this->url . '/style/jqueryui_gray/jquery-ui-1.8.15.custom.css' );
@@ -85,7 +91,9 @@ class VolleyTNT {
 		$this->torneo->set_partita = absint( $this->torneo->set_partita );
 		$this->torneo->campi = absint( $this->torneo->campi );
 		$this->torneo->durata_turno = absint( $this->torneo->durata_turno );
-		$this->torneo->finali = absint( $this->torneo->finali );
+		$this->torneo->finali_M = absint( $this->torneo->finali_M );
+		$this->torneo->finali_F = absint( $this->torneo->finali_F );
+		$this->torneo->finali_X = absint( $this->torneo->finali_X );
 		
 		VolleyTNT_Form::manage_cbs_save();
 		foreach ( $this->pages as $page ) $page->do_triggers();
@@ -397,7 +405,33 @@ class VolleyTNT {
 		}
 		return $_ . '</div>';
 	}
-	
+
+
+	public function sc_finali( $atts, $content = '' ) {
+		global $wpdb;
+		extract( shortcode_atts( array(
+			'torneo' => $this->opts->corrente,
+			'categoria' => false
+		), $atts ) );
+		
+		if ( !$torneo ) return '';
+		
+		ob_start();
+		$tree = new VolleyTNT_Tree( $torneo );
+		
+		echo '<div class="volleytnt_sc_finali">';
+		$cats = $categoria ? array( $categoria ) : $tree->torneo->categorie;
+		
+		foreach ( $cats as $cat ) {
+			echo '<div class="albero finali_' . $cat . '">';
+			echo '<h3>' . $this->l_categorie[ $cat ] . '</h3>';
+			$tree->show( $cat );
+			echo '</div>';	
+		}
+		
+		echo '</div>';
+		return ob_get_clean();
+	}
 	
 	public function sc_risultati( $atts, $content = '' ) {
 		extract( shortcode_atts( array(
@@ -667,6 +701,7 @@ class VolleyTNT_Tree {
 		global $wpdb;
 		$torneo = is_null( $torneo ) ? 	$this->opts->corrente : absint( $torneo );
 		$this->torneo = $wpdb->get_row("SELECT * FROM `{$this->prefix}tornei` WHERE `id`={$torneo}");
+		$this->torneo->categorie = explode( ',', $this->torneo->categorie );
 		if ( $tmp = $wpdb->get_results("SELECT * FROM `{$this->prefix}partite` WHERE `finale`<>'' AND `tornei_id`={$torneo} AND `visibile`=1" ) ) {
 			foreach ( $tmp as $row ) $this->finali[ $row->categoria ][ $row->finale ] = $row;
 		}
@@ -707,30 +742,18 @@ class VolleyTNT_Tree {
 			$p->set4_sq2 = '';
 			$p->set5_sq1 = '';
 			$p->set5_sq2 = '';
-			$class = 'partita nongiocata____';
+			$class = 'partita nongiocata';
 		}
-		
-			$p = new stdClass();
-			$p->categoria = $categoria;
-			$p->squadra_1 = 20;
-			$p->squadra_2 = 22;
-			$p->set1_sq1 = 21;
-			$p->set1_sq2 = 12;
-			$p->set2_sq1 = 12;
-			$p->set2_sq2 = 21;
-			$p->set3_sq1 = 21;
-			$p->set3_sq2 = 12;
-			$p->set4_sq1 = 12;
-			$p->set4_sq2 = 21;
-			$p->set5_sq1 = 21;
-			$p->set5_sq2 = 12;
-			$class = 'partita';
 
 		$p->set1 = $p->set2 = 0;
 		if ( $p->set1_sq1 or $p->set1_sq2 ) if ( $p->set1_sq1 > $p->set1_sq2 ) $p->set1++; else $p->set2++;
 		if ( $p->set2_sq1 or $p->set2_sq2 ) if ( $p->set2_sq1 > $p->set2_sq2 ) $p->set1++; else $p->set2++;
 		if ( $p->set3_sq1 or $p->set3_sq2 ) if ( $p->set3_sq1 > $p->set3_sq2 ) $p->set1++; else $p->set2++;
-		if ( !$p->set1 and !$p->set2 ) $p->set1 = $p->set2 = $p->set1_sq1 = $p->set1_sq2 = $p->set2_sq1 = $p->set2_sq2 = $p->set3_sq1 = $p->set3_sq2 = '';
+		if ( $this->torneo->set_partita == 5 ) {
+			if ( $p->set4_sq1 or $p->set4_sq2 ) if ( $p->set4_sq1 > $p->set4_sq2 ) $p->set1++; else $p->set2++;
+			if ( $p->set5_sq1 or $p->set5_sq2 ) if ( $p->set5_sq1 > $p->set5_sq2 ) $p->set1++; else $p->set2++;
+		}
+		if ( !$p->set1 and !$p->set2 ) $p->set1 = $p->set2 = $p->set1_sq1 = $p->set1_sq2 = $p->set2_sq1 = $p->set2_sq2 = $p->set3_sq1 = $p->set3_sq2 = $p->set4_sq1 = $p->set4_sq2 = $p->set5_sq1 = $p->set5_sq2 = '';
 		$class .= ' p' . $id;
 		?>
 		<div class="<?php echo $class; ?>" squadra_1="<?php echo $p->squadra_1; ?>" squadra_2="<?php echo $p->squadra_2; ?>" categoria="<?php echo $p->categoria; ?>" id_partita="<?php echo $id; ?>">
@@ -741,6 +764,10 @@ class VolleyTNT_Tree {
 					<span class="set set1 sq1 set1_sq1"><?php echo $p->set1_sq1; ?></span>
 					<span class="set set2 sq1 set2_sq1"><?php echo $p->set2_sq1; ?></span>
 					<span class="set set3 sq1 set3_sq1"><?php echo $p->set3_sq1; ?></span>
+					<?php if ( $this->torneo->set_partita == 5 ) { ?>
+						<span class="set set4 sq1 set4_sq1"><?php echo $p->set4_sq1; ?></span>
+						<span class="set set5 sq1 set5_sq1"><?php echo $p->set5_sq1; ?></span>
+					<?php } ?>
 				</div>
 				<div class="sottoseparatore"></div>
 				<div class="punti punti2">
@@ -748,6 +775,10 @@ class VolleyTNT_Tree {
 					<span class="set set1 sq2 set1_sq2"><?php echo $p->set1_sq2; ?></span>
 					<span class="set set2 sq2 set2_sq2"><?php echo $p->set2_sq2; ?></span>
 					<span class="set set3 sq2 set3_sq2"><?php echo $p->set3_sq2; ?></span>
+					<?php if ( $this->torneo->set_partita == 5 ) { ?>
+						<span class="set set4 sq2 set4_sq2"><?php echo $p->set4_sq2; ?></span>
+						<span class="set set5 sq2 set5_sq2"><?php echo $p->set5_sq2; ?></span>
+					<?php } ?>
 				</div>
 			</div>
 			<div class="squadra squadra2"><?php echo isset( $this->squadre[ $p->categoria ][ $p->squadra_2 ] ) ? $this->squadre[ $p->categoria ][ $p->squadra_2 ] : ''; ?></div>
@@ -756,41 +787,39 @@ class VolleyTNT_Tree {
 	}
 
 	public function show( $categoria ) {
-		$this->torneo->finali = 32;
-
-		echo '<div class="tabellonefinale base' . $this->torneo->finali . '">';
+		$attr = 'finali_' . $categoria;
+		echo '<div class="tabellonefinale base' . $this->torneo->$attr . '">';
 		echo '<div class="fasi">';
-		if ( $this->torneo->finali >= 32 ) echo '<h4>' . __('Trentaduesimi', 'volleytnt') . '</h4>';
-		if ( $this->torneo->finali >= 16 ) echo '<h4>' . __('Sedicesimi', 'volleytnt') . '</h4>';
-		if ( $this->torneo->finali >= 8 ) echo '<h4>' . __('Ottavi', 'volleytnt') . '</h4>';
-		if ( $this->torneo->finali >= 4 ) echo '<h4>' . __('Quarti', 'volleytnt') . '</h4>';
-		if ( $this->torneo->finali >= 2 ) echo '<h4>' . __('Semifinali', 'volleytnt') . '</h4>';
-		echo '<h4>' . __('Finalina', 'volleytnt') . '</h4>';
-		echo '<h4>' . __('Finale', 'volleytnt') . '</h4>';
+		if ( $this->torneo->$attr >= 32 ) echo '<h4 class="trentaduesimi">' . __('Trentaduesimi', 'volleytnt') . '</h4>';
+		if ( $this->torneo->$attr >= 16 ) echo '<h4 class="sedicesimi">' . __('Sedicesimi', 'volleytnt') . '</h4>';
+		if ( $this->torneo->$attr >= 8 ) echo '<h4 class="ottavi">' . __('Ottavi', 'volleytnt') . '</h4>';
+		if ( $this->torneo->$attr >= 4 ) echo '<h4 class="quarti">' . __('Quarti', 'volleytnt') . '</h4>';
+		if ( $this->torneo->$attr >= 2 ) echo '<h4 class="semifinali">' . __('Semifinali', 'volleytnt') . '</h4><h4 class="finalina">' . __('Finalina', 'volleytnt') . '</h4>';
+		echo '<h4 class="finale">' . __('Finale', 'volleytnt') . '</h4>';
 		echo '<br style="clear:both" />';
 		echo '</div>';
 		
-		if ( $this->torneo->finali >= 32 ) {
+		if ( $this->torneo->$attr >= 32 ) {
 			echo '<div class="trentaduesimi colonna">';
 			for ( $i = 1; $i <= 32; $i++ ) $this->partita( $categoria, '32_' . $i );
 			echo '</div>';
 		}
-		if ( $this->torneo->finali >= 16 ) {
+		if ( $this->torneo->$attr >= 16 ) {
 			echo '<div class="sedicesimi colonna">';
 			for ( $i = 1; $i <= 16; $i++ ) $this->partita( $categoria, '16_' . $i );
 			echo '</div>';
 		}
-		if ( $this->torneo->finali >= 8 ) {
+		if ( $this->torneo->$attr >= 8 ) {
 			echo '<div class="ottavi colonna">';
 			for ( $i = 1; $i <= 8; $i++ ) $this->partita( $categoria, '8_' . $i );
 			echo '</div>';
 		}
-		if ( $this->torneo->finali >= 4 ) {
+		if ( $this->torneo->$attr >= 4 ) {
 			echo '<div class="quarti colonna">';
 			for ( $i = 1; $i <= 4; $i++ ) $this->partita( $categoria, '4_' . $i );
 			echo '</div>';
 		}
-		if ( $this->torneo->finali >= 2 ) {
+		if ( $this->torneo->$attr >= 2 ) {
 			echo '<div class="semifinali colonna">';
 			$this->partita( $categoria, '2_1' );
 			$this->partita( $categoria, '2_2' );

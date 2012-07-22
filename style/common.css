@@ -5,6 +5,10 @@
 	clear:none;
 }
 
+.tabellonefinale .fasi h4 {
+	text-align:center;
+}
+
 .tabellonefinale .partita {
 	-moz-border-radius: 8px; 
 	-webkit-border-radius: 8px; 
@@ -23,7 +27,7 @@
     font-style: normal;
     font-weight: bold;
     font-size:16px;
-    margin-right: 5px;
+    margin-right: 3px;
 }
 .tabellonefinale .partita .risultato.risultato1 {
 	margin-top:1px;
@@ -65,7 +69,11 @@
 }
 
 .tabellonefinale .partita .punti span {
-	padding-right:4px;
+	display: block;
+	float: left;
+	padding-right: 4px;
+	text-align: right;
+	width: 15px;
 }
 
 

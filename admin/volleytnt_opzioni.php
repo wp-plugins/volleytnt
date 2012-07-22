@@ -57,12 +57,12 @@ class VolleyTNT_Opzioni extends VolleyTNT_AdminPage {
 		echo '<dt>' . __("Durata turno", 'volleytnt') . '<dt>';
 		echo '<dd>' . __("La durata media di un incontro in minuti, valore di riferimento usato per la pianificazione del calendario partite.", 'volleytnt') . '</dd>';
 		echo '<dt>' . __("Finali", 'volleytnt') . '<dt>';
-		echo '<dd>' . __("La prima fase giocata delle finali a eliminazione diretta.", 'volleytnt') . '</dd>';
+		echo '<dd>' . __("La prima fase giocata delle finali a eliminazione diretta. Sono possibili valori differenti per ogni categoria.", 'volleytnt') . '</dd>';
 		echo '</dl>';
 	}
 
 	public function translate_finali( $num ) {
-		return $this->l_finali[ $num ];
+		return ( $num and isset( $this->l_finali[ $num ] ) ) ? $this->l_finali[ $num ] : '';
 	}
 
 	public function translate_set_partita( $num ) {
@@ -77,6 +77,7 @@ class VolleyTNT_Opzioni extends VolleyTNT_AdminPage {
 	
 	public function salva_slots( $slots ) {
 		global $wpdb;
+		$slots['id'] = absint( $slots['id'] );
 		$torneo = $wpdb->get_row("SELECT * FROM `{$this->prefix}tornei` WHERE `id`={$slots['id']}");
 		if ( $torneo ) {
 			$wpdb->query("DELETE FROM `{$this->prefix}slots` WHERE `tornei_id`={$slots['id']}");
@@ -232,12 +233,16 @@ class VolleyTNT_Opzioni extends VolleyTNT_AdminPage {
 						'set_partita'	=> __("Set partita", 'volleytntn' ),
 						'campi'			=> __("Campi", 'volleytnt' ),
 						'durata_turno'	=> __("Durata turno", 'volleytnt'),
-						'finali'		=> __("Finali", 'volleytnt' ) );
+						'finali_M'		=> __("Finali maschile", 'volleytnt' ),
+						'finali_F'		=> __("Finali femminile", 'volleytnt' ),
+						'finali_X'		=> __("Finali misto", 'volleytnt' ) );
 		$table = new VolleyTNT_Table( 'vtnt_opts', $cols, "SELECT * FROM `{$this->prefix}tornei` ORDER BY `id` ASC" );
 		$table->add_action( $this->url( 'edit', '%id%' ), __("Modifica", 'volleytnt') );
 		$table->add_action( $this->url( 'timespan', '%id%' ), __("Giorni e ore", 'volleytnt') );
 		$table->add_action( $this->url( 'delete', '%id%' ), __("Elimina", 'volleytnt'), 'delete', 'conferma_elimina_torneo' );
-		$table->add_filter( 'finali', array( $this, 'translate_finali' ) );
+		$table->add_filter( 'finali_M', array( $this, 'translate_finali' ) );
+		$table->add_filter( 'finali_F', array( $this, 'translate_finali' ) );
+		$table->add_filter( 'finali_X', array( $this, 'translate_finali' ) );
 		$table->add_filter( 'set_partita', array( $this, 'translate_set_partita' ) );
 		$table->add_filter( 'categorie', array( $this, 'translate_categorie' ) );
 		$table->add_filter( 'durata_turno', create_function( '$a', 'return "$a\'";' ) );
@@ -269,7 +274,9 @@ class VolleyTNT_Opzioni extends VolleyTNT_AdminPage {
 		$form->add_element( 'select', 'set_partita', __("Set per partita", 'volleytnt'), __("Numero massimo di set giocati in ogni partita.", 'volleytnt'), $this->l_set_partita );
 		$form->add_element( 'string', 'campi', __("Numero di campi", 'volleytnt'), __("Su quanti campi si svolge il torneo.", 'volleytnt') );
 		$form->add_element( 'string', 'durata_turno', __("Durata del turno in minuti", 'volleytnt'), __("Durata indicativa della partita media, usata per il calcolo degli orari.", 'volleytnt') );
-		$form->add_element( 'select', 'finali', __("Prima fase delle finali", 'volleytnt'), __("Determina quante squadre passano alle finali a eliminazione diretta. ", 'volleytnt'), $this->l_finali );
+		$form->add_element( 'select', 'finali_M', __("Prima fase delle finali maschili", 'volleytnt'), __("Determina quante squadre passano alle finali a eliminazione diretta. ", 'volleytnt'), $this->l_finali );
+		$form->add_element( 'select', 'finali_F', __("Prima fase delle finali femminili", 'volleytnt'), __("Determina quante squadre passano alle finali a eliminazione diretta. ", 'volleytnt'), $this->l_finali );
+		$form->add_element( 'select', 'finali_X', __("Prima fase delle finali misto", 'volleytnt'), __("Determina quante squadre passano alle finali a eliminazione diretta. ", 'volleytnt'), $this->l_finali );
 		$form->show();
 	}
 	
@@ -298,6 +305,9 @@ class VolleyTNT_Opzioni extends VolleyTNT_AdminPage {
 	
 	public function salva_torneo( $data, $id ) {
 		global $wpdb;
+		if ( !in_array( 'M', $data['categorie'] ) ) $data['finali_M'] = 0;
+		if ( !in_array( 'F', $data['categorie'] ) ) $data['finali_F'] = 0;
+		if ( !in_array( 'X', $data['categorie'] ) ) $data['finali_X'] = 0;
 		$data['categorie'] = implode( ',', $data['categorie'] );
 		$id = intval( $data['id'] );
 		unset( $data['id'] );
