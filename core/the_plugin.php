@@ -15,6 +15,15 @@ class VolleyTNT {
 	public $l_finali = array();
 	private $l_js = array();
 	
+	public function call_page_method( $page_slug, $method ) {
+		$args = func_get_args();
+		$page_slug = array_shift( $args );
+		$method = array_shift( $args );
+		if ( isset( $this->pages[ $page_slug ] ) and is_callable( array( $this->pages[ $page_slug ], $method ) ) ) {
+			call_user_func_array( array( $this->pages[ $page_slug ], $method ), $args );
+		}
+	}
+	
 	public function __construct() {
 		global $wpdb;
 		$this->path = VOLLEYTNT_PATH;
@@ -171,7 +180,7 @@ class VolleyTNT {
 										WHERE 
 											`tornei_id`=$id_torneo 
 										ORDER BY 
-											`giorno` ASC, 
+											`{$this->prefix}slots`.`giorno` ASC, 
 											`campo` ASC, 
 											ordo ASC");
 		$_ = array();
@@ -416,9 +425,10 @@ class VolleyTNT {
 		
 		if ( !$torneo ) return '';
 		
-		ob_start();
 		$tree = new VolleyTNT_Tree( $torneo );
+		if ( !$tree->finali ) return '';
 		
+		ob_start();
 		echo '<div class="volleytnt_sc_finali">';
 		$cats = $categoria ? array( $categoria ) : $tree->torneo->categorie;
 		
@@ -661,9 +671,7 @@ class VolleyTNT {
 				$page->wp_slug = add_menu_page( $page->get_title(), $page->get_title(), 'edit_pages', $slug, array( $this, 'admin_page' ), $this->url . '/style/Volleyball_16x16.png', 4 );
 			}
 			$this->wp_tnt_pages[ $page->wp_slug ] = $slug;
-			if ( $page->help_tabs ) {
-				add_action( 'load-' . $page->wp_slug, array( $page, 'do_help_tabs' ) );
-			}
+			add_action( 'load-' . $page->wp_slug, array( $page, '_page_load' ) );
 			if ( $page->menubar_newlinks ) foreach ( $page->menubar_newlinks as $link ) {
 				$wp_admin_bar->add_menu( array(
 					'parent'    => 'new-content',
@@ -677,7 +685,7 @@ class VolleyTNT {
 	
 	private function register_page( $classname ) {
 		require_once( $this->path . DIRECTORY_SEPARATOR . 'admin' . DIRECTORY_SEPARATOR . strtolower( $classname ) . '.php' );
-		$this->pages[ $classname ] = new $classname();
+		$this->pages[ strtolower( $classname ) ] = new $classname();
 	}
 	
 	public function admin_page() {

@@ -117,7 +117,7 @@ class VolleyTNT_Partite extends VolleyTNT_AdminPage {
 		echo '<div id="elencopartite"><h4>' . __("Partite non assegnate",'volleytnt') . '</h4>';
 
 		if ( $partite ) {
-			echo '<p>' . sprintf( __('Prima di assegnare gli orari consiglia di disattivare le partite non giocate nella <a href="%s">pagina delle finali</a>.', 'volleytnt'), add_query_arg( 'page', 'VolleyTNT_Opzioni', admin_url('admin.php') ) ) . '</p>';
+			echo '<p>' . sprintf( __('Prima di assegnare gli orari consiglia di disattivare le partite non giocate nella <a href="%s">pagina delle finali</a>.', 'volleytnt'), add_query_arg( 'page', 'volleytnt_finali', admin_url('admin.php') ) ) . '</p>';
 		} else {
 			echo '<p>' . __("&Egrave; necessario generare le partite mediante il tasto sottostante", 'volleytnt') . '</p>';
 		}
