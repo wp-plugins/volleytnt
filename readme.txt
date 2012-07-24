@@ -4,7 +4,7 @@ Donate link: http://volleytnt.belinde.net
 Tags: sport, volley, beachvolley, volleyball, tournament, management
 Requires at least: 3.3
 Tested up to: 3.4.1
-Stable tag: trunk
+Stable tag: 0.1
 
 Manage volley and beach volley tournaments: registration of athletes, management of playing fields, play-offs, the final knockout.
 

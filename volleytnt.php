@@ -4,7 +4,7 @@ Plugin Name: VolleyTNT
 Plugin URI: http://volleytnt.belinde.net
 Description: Gestione di tornei di Beach Volley e Pallavolo
 Author: Franco Traversaro
-Version: 0.1
+Version: 0.2
 Author URI: mailto:f.traversaro@gmail.com
 */
 
