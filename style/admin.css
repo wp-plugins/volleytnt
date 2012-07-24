@@ -126,6 +126,7 @@ br.clearer {
 .VolleyTNT_Partite .ui-draggable-dragging {
 	height:21px;
 	width:270px;
+	display:block;
 }
 
 .VolleyTNT_Risultati .modpunti {
@@ -136,4 +137,34 @@ br.clearer {
 .VolleyTNT_Risultati .modificando .squadra {
 	height:30px;
 	line-height:30px;
+}
+
+
+.tabellonefinale .partita {
+	cursor:pointer;
+}
+
+.tabellonefinale .partita:hover {
+	background-color:#ddd;
+}
+
+.shortform label {
+	margin-top:5px;
+	display:block;
+}
+
+.shortform input, .shortform select, .shortform #squadra input {
+    width: 100%;
+}
+
+#formfinale th.punti {
+	width:60px;
+}
+
+#formfinale input.punti {
+	width:50px;
+}
+
+#formfinale select {
+	width:100%;
 }

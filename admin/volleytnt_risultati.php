@@ -107,12 +107,12 @@ class VolleyTNT_Risultati extends VolleyTNT_AdminPage {
 			echo '<th>' . __('Partita', 'volleytnt') . '</th>';
 			echo '<th>' . __('Squadre', 'volleytnt') . '</th>';
 			echo '<th>' . __('Risultato', 'volleytnt') . '</th>';
-			echo '<th>' . __('1° set', 'volleytnt') . '</th>';
-			echo '<th>' . __('2° set', 'volleytnt') . '</th>';
-			echo '<th>' . __('3° set', 'volleytnt') . '</th>';
+			echo '<th>' . sprintf( __('%d&ordm; set', 'volleytnt'), 1 ) . '</th>';
+			echo '<th>' . sprintf( __('%d&ordm; set', 'volleytnt'), 2 ) . '</th>';
+			echo '<th>' . sprintf( __('%d&ordm; set', 'volleytnt'), 3 ) . '</th>';
 			if ( $this->torneo->set_partita == 5 ) {
-				echo '<th>' . __('4° set', 'volleytnt') . '</th>';
-				echo '<th>' . __('5° set', 'volleytnt') . '</th>';
+				echo '<th>' . sprintf( __('%d&ordm; set', 'volleytnt'), 4 ) . '</th>';
+				echo '<th>' . sprintf( __('%d&ordm; set', 'volleytnt'), 5 ) . '</th>';
 			}
 			echo '<th>&nbsp;</th>';
 			echo '</tr></thead>';

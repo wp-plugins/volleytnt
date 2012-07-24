@@ -63,13 +63,14 @@ class VolleyTNT_Partite extends VolleyTNT_AdminPage {
 		if ( $tokens ) $wpdb->query("INSERT INTO `{$this->prefix}partite` (`categoria`,`girone`,`squadra_1`,`squadra_2`,`tornei_id`) VALUES " . implode(', ', $tokens ) );
 		
 		$tokens = array();
-		if ( $categorie ) foreach ( $categorie as $categoria ) {
-			if ( $this->torneo->finali >= 32 ) for ( $i = 1; $i <= 32; $i++ ) $tokens[] = "('$categoria', '32_{$i}', {$this->opts->corrente})";
-			if ( $this->torneo->finali >= 16 ) for ( $i = 1; $i <= 16; $i++ ) $tokens[] = "('$categoria', '16_{$i}', {$this->opts->corrente})";
-			if ( $this->torneo->finali >= 8 ) for ( $i = 1; $i <= 8; $i++ ) $tokens[] = "('$categoria', '8_{$i}', {$this->opts->corrente})";
-			if ( $this->torneo->finali >= 4 ) for ( $i = 1; $i <= 4; $i++ ) $tokens[] = "('$categoria', '4_{$i}', {$this->opts->corrente})";
-			if ( $this->torneo->finali >= 2 ) for ( $i = 1; $i <= 2; $i++ ) $tokens[] = "('$categoria', '2_{$i}', {$this->opts->corrente})";
-			$tokens[] = "('$categoria', '1_1', {$this->opts->corrente})";
+		if ( $categorie ) foreach ( $categorie as $categoria ) if ( in_array( $categoria, $this->torneo->categorie ) ) {
+			$attr = 'finali_' . $categoria;
+			if ( $this->torneo->$attr >= 32 ) for ( $i = 1; $i <= 32; $i++ ) $tokens[] = "('$categoria', '32_{$i}', {$this->opts->corrente})";
+			if ( $this->torneo->$attr >= 16 ) for ( $i = 1; $i <= 16; $i++ ) $tokens[] = "('$categoria', '16_{$i}', {$this->opts->corrente})";
+			if ( $this->torneo->$attr >= 8 ) for ( $i = 1; $i <= 8; $i++ ) $tokens[] = "('$categoria', '8_{$i}', {$this->opts->corrente})";
+			if ( $this->torneo->$attr >= 4 ) for ( $i = 1; $i <= 4; $i++ ) $tokens[] = "('$categoria', '4_{$i}', {$this->opts->corrente})";
+			if ( $this->torneo->$attr >= 2 ) for ( $i = 1; $i <= 2; $i++ ) $tokens[] = "('$categoria', '2_{$i}', {$this->opts->corrente})";
+			if ( $this->torneo->$attr >= 2 ) $tokens[] = "('$categoria', '1_1', {$this->opts->corrente})";
 			$tokens[] = "('$categoria', '0_1', {$this->opts->corrente})";
 		}
 		
@@ -116,7 +117,7 @@ class VolleyTNT_Partite extends VolleyTNT_AdminPage {
 		echo '<div id="elencopartite"><h4>' . __("Partite non assegnate",'volleytnt') . '</h4>';
 
 		if ( $partite ) {
-			echo '<p>' . sprintf( __('Prima di assegnare gli orari consiglia di disattivare le partite non giocate nella <a href="%s">pagina delle finali</a>.', 'volleytnt'), add_query_arg( 'page', 'VolleyTNT_Opzioni', admin_url('admin.php') ) ) . '</p>';
+			echo '<p>' . sprintf( __('Prima di assegnare gli orari consiglia di disattivare le partite non giocate nella <a href="%s">pagina delle finali</a>.', 'volleytnt'), add_query_arg( 'page', 'volleytnt_finali', admin_url('admin.php') ) ) . '</p>';
 		} else {
 			echo '<p>' . __("&Egrave; necessario generare le partite mediante il tasto sottostante", 'volleytnt') . '</p>';
 		}
@@ -129,6 +130,7 @@ class VolleyTNT_Partite extends VolleyTNT_AdminPage {
 
 		$slots = $wpdb->get_results("	SELECT
 											`id`,
+											`giorno` AS `sql`,
 											DATE_FORMAT(`giorno`, '" . volleytnt_date_format('sql') . "') AS giorno,
 											DATE_FORMAT(`inizio`, '%k:%i') AS inizio,
 											DATE_FORMAT(`fine`, '%k:%i') AS fine,
@@ -146,12 +148,25 @@ class VolleyTNT_Partite extends VolleyTNT_AdminPage {
 											ordo ASC");
 		
 		if ( $slots ) {
+			$settimana = array( 1 => __('Lunedì', 'volleytnt' ),
+								2 => __('Martedì', 'volleytnt' ),
+								3 => __('Mercoledì', 'volleytnt' ),
+								4 => __('Giovedì', 'volleytnt' ),
+								5 => __('Venerdì', 'volleytnt' ),
+								6 => __('Sabato', 'volleytnt' ),
+								7 => __('Domenica', 'volleytnt' ) );
 			echo '<div class="accordion" id="accopartite">';
 			$inizi = $campi = $giorni = array();
+			$labelgiorni = array();
 			foreach ( $slots as $slot ) {
 				$inizi[ $slot->ordo ] = $slot->inizio;
 				$campi[] = $slot->campo;
 				$giorni[] = $slot->giorno;
+				if ( !isset( $labelgiorni[ $slot->giorno ] ) ) {
+					$d = new DateTime( $slot->sql );
+					$labelgiorni[ $slot->giorno ] = $settimana[ $d->format('N') ];
+					unset( $d );
+				}
 			}
 			ksort( $inizi );
 			$campi = array_unique( $campi );
@@ -212,7 +227,8 @@ class VolleyTNT_Partite extends VolleyTNT_AdminPage {
 	}
 
 	private function riga_partita( $par ) {
-		echo '<div class="partita ui-corner-all ui-widget-content" partita_id="' . $par->id . '" impossibilita="' . $par->imps . '">';
+		$class = $par->imps ? ' ui-state-focus' : '';
+		echo '<div class="partita ui-corner-all ui-widget-content' . $class . '" partita_id="' . $par->id . '" impossibilita="' . $par->imps . '">';
 		echo '<span class="girone">' . $par->categoria;
 		if ( $par->girone ) echo $par->girone;
 		if ( $par->finale ) echo $par->finale;

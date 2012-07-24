@@ -188,11 +188,22 @@ class VolleyTNT_Squadre extends VolleyTNT_AdminPage {
 		echo '<tfoot><tr><th colspan="7"><a class="button" id="aggiungi_atleta">' . __("Aggiungi un atleta", 'volleytnt') . '</a></th></tr></tfoot>';
 		echo '</table>';
 	}
+	
+	public function form_atleti_short( $name, $id, $atleti ) {
+		$this->workaround_atleti = $name;
+		echo '<table class="widefat" id="squadra">';
+		echo '<thead><tr><th>' . __("Cognome", 'volleytnt' ) . '</th><th>' . __("Nome", 'volleytnt' ) . '</th><th>' . __("Telefono", 'volleytnt' ) . '</th><th>' . __("E-mail", 'volleytnt' ) . '</th><th>&nbsp;</th></tr></thead>';
+		echo '<tbody id="squadra">';
+		foreach ( $atleti as $row ) call_user_func_array( array( $this, 'riga_persona' ), $row );
+		echo '</tbody>';
+		echo '<tfoot><tr><th colspan="7"><a class="button" id="aggiungi_atleta">' . __("Aggiungi un atleta", 'volleytnt') . '</a></th></tr></tfoot>';
+		echo '</table>';
+	}
 
-	public function edit( $id_squadra ) {
+	public function edit( $id_squadra, $short_form = false ) {
 		global $wpdb;
 		if ( $id_squadra ) {
-			echo '<h3>' . __("Modifica iscrizione", 'volleytnt') . '</h3>';			
+			if ( !$short_form ) echo '<h3>' . __("Modifica iscrizione", 'volleytnt') . '</h3>';			
 			$atleti = $wpdb->get_results("
 				SELECT 
 					`{$this->prefix}atleti`.`id`,
@@ -225,7 +236,7 @@ class VolleyTNT_Squadre extends VolleyTNT_AdminPage {
 			$squadra['impossibilita'] = $impossibilita;
 			$squadra['atleti'] = $atleti;
 		} else {
-			echo '<h3>' . __("Iscrivi nuova squadra", 'volleytnt') . '</h3>';
+			if ( !$short_form ) echo '<h3>' . __("Iscrivi nuova squadra", 'volleytnt') . '</h3>';
 			$atleti = array();
 			$impossibilita = array();
 			$squadra = array( 'id' => 0, 'label' => '', 'categoria' => 'M', 'tornei_id' => $this->opts->corrente, 'impossibilita' => $impossibilita, 'atleti' => $atleti );
@@ -234,15 +245,15 @@ class VolleyTNT_Squadre extends VolleyTNT_AdminPage {
 		$form = new VolleyTNT_Form( 'vtntfrm_squadra' );
 		$form->load( $squadra );
 		$form->set_redirect( $this->url('firstpage') );
-		$form->add_element( 'string', 'label', __("Nome squadra", 'volleytnt'), __("Un nome di riferimento usato in tutte le stampe e gli elenchi.", 'volleytnt') );
 		$form->add_element( 'select', 'categoria', __("Categoria", 'volleytnt'), __("Categoria in cui iscrivere la squadra.", 'volleytnt'), $this->l_categorie );
-		$form->add_element( 'custom', 'impossibilita', __("Orari non disponibili", 'volleytnt'), __("Gli orari in cui la squadra non può giocare, riferiti alla giornata di gioco. Orari dopo la mezzanotte ma prima delle 6 si considerano del giorno precedente.", 'volleytnt' ), array( $this, 'form_indisponibilita' ) );
-		$form->add_element( 'custom', 'atleti', __("Atleti", 'volleytnt'), __("Dati anagrafici e informazioni di contatto dei componenti della squadra.", 'volleytnt' ), array( $this, 'form_atleti' ) );
+		$form->add_element( 'string', 'label', __("Nome squadra", 'volleytnt'), __("Un nome di riferimento usato in tutte le stampe e gli elenchi.", 'volleytnt') );
+		if ( !$short_form ) $form->add_element( 'custom', 'impossibilita', __("Orari non disponibili", 'volleytnt'), __("Gli orari in cui la squadra non può giocare, riferiti alla giornata di gioco. Orari dopo la mezzanotte ma prima delle 6 si considerano del giorno precedente.", 'volleytnt' ), array( $this, 'form_indisponibilita' ) );
+		$form->add_element( 'custom', 'atleti', __("Atleti", 'volleytnt'), __("Dati anagrafici e informazioni di contatto dei componenti della squadra.", 'volleytnt' ), array( $this, $short_form ? 'form_atleti_short' : 'form_atleti' ) );
 		
-		$form->show();		
+		$form->show( $short_form );		
 				
 		echo '<table id="blueprint" style="display:none;">';
-		$this->riga_persona();		
+		if ( $short_form ) $this->riga_persona_short(); else $this->riga_persona();		
 		echo '</table>';
 		
 		echo '<div id="blueprint_impossibilita" style="display:none;">';
@@ -273,6 +284,16 @@ class VolleyTNT_Squadre extends VolleyTNT_AdminPage {
 		echo '<td><input autocomplete="off" type="text" field="mail" name="' . $this->workaround_atleti . '[mail][]" value="' . esc_attr( $mail ) . '" ></td>';
 		echo '<td><select autocomplete="off" field="pagato" name="' . $this->workaround_atleti . '[pagato][]"><option value="0"' . selected( $pag, '0', false ) . '>No</option><option value="1"' . selected( $pag, '1', false ) . '>Sì</option></select></td>';
 		echo '<td><select autocomplete="off" field="manleva" name="' . $this->workaround_atleti . '[manleva][]"><option value="0"' . selected( $man, '0', false ) . '>No</option><option value="1"' . selected( $man, '1', false ) . '>Sì</option></select></td>';
+		echo '<td class="remove ui-state-default ui-corner-all"><span class="ui-icon ui-icon-circle-close"></span></td>';
+		echo '</tr>';
+	}
+	
+	private function riga_persona_short( $id = '0', $cognome = '', $nome = '', $tel = '', $mail = '' ) {
+		echo '<tr>';
+		echo '<td><input autocomplete="off" type="text" field="cognome" name="' . $this->workaround_atleti . '[cognome][]" value="' . esc_attr( $cognome ) . '" /><input autocomplete="off" type="hidden" field="id" name="' . $this->workaround_atleti . '[id][]" value="' . esc_attr( $id ) . '" /></td>';
+		echo '<td><input autocomplete="off" type="text" field="nome" name="' . $this->workaround_atleti . '[nome][]" value="' . esc_attr( $nome ) . '" ></td>';
+		echo '<td><input autocomplete="off" type="text" field="telefono" name="' . $this->workaround_atleti . '[telefono][]" value="' . esc_attr( $tel ) . '" ></td>';
+		echo '<td><input autocomplete="off" type="text" field="mail" name="' . $this->workaround_atleti . '[mail][]" value="' . esc_attr( $mail ) . '" ></td>';
 		echo '<td class="remove ui-state-default ui-corner-all"><span class="ui-icon ui-icon-circle-close"></span></td>';
 		echo '</tr>';
 	}

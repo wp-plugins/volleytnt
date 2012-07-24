@@ -1,6 +1,6 @@
 <?php 
 abstract class VolleyTNT_AdminPage {
-	public $menu_child_of = 'VolleyTNT_Home';
+	public $menu_child_of = 'volleytnt_home';
 	public $help_tabs = array();
 	public $menubar_newlinks = array();
 	public $js_files = array();
@@ -9,6 +9,8 @@ abstract class VolleyTNT_AdminPage {
 	protected $title_action = false;
 	protected $brain_data = array();
 	protected $init_triggers = array();
+	
+	public function _load() {}
 	
 	final protected function trigger( $method, $callback, $return_to = false ) {
 		$this->init_triggers[] = array(	'method' 	=> $method, 
@@ -32,8 +34,9 @@ abstract class VolleyTNT_AdminPage {
 		}
 	}
 	
-	final public function do_help_tabs() {
+	final public function _page_load() {
 		global $current_screen;
+		$this->_load();
 		if ( $this->help_tabs ) foreach ( $this->help_tabs as $help ) $current_screen->add_help_tab( $help );
 	}
 	
@@ -87,7 +90,7 @@ abstract class VolleyTNT_AdminPage {
 	}
 	
 	final protected function url( $method, $param = false ) {
-		return add_query_arg( array(	'page'		=> get_class( $this ),
+		return add_query_arg( array(	'page'		=> strtolower( get_class( $this ) ),
 										'method'	=> $method,
 										'param'		=> $param ), admin_url('admin.php') );
 	}
