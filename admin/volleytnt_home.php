@@ -24,6 +24,9 @@ class VolleyTNT_Home extends VolleyTNT_AdminPage {
 
 	function iscrizione_rapida() {
 		global $VolleyTNT;
+		echo '<p>';
+		printf( __('Per impostare le impossibilità utilizzare la <a href="%s">registrazione completa</a>.', 'volleytnt'), add_query_arg( array(	'page'	=> 'volleytnt_squadre',	'method' => 'edit' ), admin_url('admin.php') ) );
+		echo '</p>';
 		$VolleyTNT->call_page_method( 'volleytnt_squadre', 'edit', 0, true );
 	} 
 

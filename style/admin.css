@@ -148,6 +148,15 @@ br.clearer {
 	background-color:#ddd;
 }
 
+.shortform label {
+	margin-top:5px;
+	display:block;
+}
+
+.shortform input, .shortform select, .shortform #squadra input {
+    width: 100%;
+}
+
 #formfinale th.punti {
 	width:60px;
 }

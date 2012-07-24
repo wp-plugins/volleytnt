@@ -85,7 +85,7 @@ class VolleyTNT_Form {
 		}	
 	}
 	
-	public function show() {
+	public function show( $short = false ) {
 		if ( isset( $_GET['error_' . $this->id ] ) ) {
 			$errcode = strval( $_GET['error_' . $this->id ] );
 			if ( !isset( $this->msgs[ $errcode ] ) ) $errcode = 'generic';
@@ -97,19 +97,19 @@ class VolleyTNT_Form {
 		echo VolleyTNT_Form::field( 'hidden', "{$this->id}[_nonce]", "{$this->id}_nonce", wp_create_nonce( $this->id ) );
 		echo VolleyTNT_Form::field( 'hidden', "{$this->id}[_return]", "{$this->id}_return", $_SERVER['REQUEST_URI'] );
 		echo VolleyTNT_Form::field( 'hidden', "{$this->id}[_redirect]", "{$this->id}_redirect", $this->redirect );
-		echo '<table class="form-table"><tbody>';
+		if ( !$short ) echo '<table class="form-table"><tbody>';
 		foreach ( $this->elements as $field ) {
-			
 			$value = isset( $this->data[ $field['name'] ] ) ? $this->data[ $field['name'] ] : '';
-			echo '<tr valign="top">';
-			echo '<th scope="row">';
+			if ( $short ) echo '<div class="shortform">'; 
+			if ( !$short ) echo '<tr valign="top"><th scope="row">';
 			echo '<label for="' . $this->id . '_' . $field['name'] . '">' . $field['label'] . '</label>';
-			echo '</th><td>';
+			if ( !$short ) echo '</th><td>';
 			echo VolleyTNT_Form::field( $field['type'], $this->id . '[' . $field['name'] . ']', $this->id . '_' . $field['name'], $value, $field['params'] );
-			if ( $field['desc'] ) echo '<span class="description">' . $field['desc'] . '</span>';
-			echo '</td></tr>';
+			if ( !$short and $field['desc'] ) echo '<span class="description">' . $field['desc'] . '</span>';
+			if ( !$short ) echo '</td></tr>';
+			if ( $short ) echo '</div>';
 		}		
-		echo '</tbody></table>';
+		if ( !$short ) echo '</tbody></table>';
 		echo '<p class="submit"><input class="button-primary" type="submit" value="' . esc_attr__( "Salva", 'volleytnt' ) . '"></p>';
 		echo '</form>';
 	}

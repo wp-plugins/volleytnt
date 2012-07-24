@@ -245,12 +245,12 @@ class VolleyTNT_Squadre extends VolleyTNT_AdminPage {
 		$form = new VolleyTNT_Form( 'vtntfrm_squadra' );
 		$form->load( $squadra );
 		$form->set_redirect( $this->url('firstpage') );
-		$form->add_element( 'string', 'label', __("Nome squadra", 'volleytnt'), __("Un nome di riferimento usato in tutte le stampe e gli elenchi.", 'volleytnt') );
 		$form->add_element( 'select', 'categoria', __("Categoria", 'volleytnt'), __("Categoria in cui iscrivere la squadra.", 'volleytnt'), $this->l_categorie );
+		$form->add_element( 'string', 'label', __("Nome squadra", 'volleytnt'), __("Un nome di riferimento usato in tutte le stampe e gli elenchi.", 'volleytnt') );
 		if ( !$short_form ) $form->add_element( 'custom', 'impossibilita', __("Orari non disponibili", 'volleytnt'), __("Gli orari in cui la squadra non può giocare, riferiti alla giornata di gioco. Orari dopo la mezzanotte ma prima delle 6 si considerano del giorno precedente.", 'volleytnt' ), array( $this, 'form_indisponibilita' ) );
 		$form->add_element( 'custom', 'atleti', __("Atleti", 'volleytnt'), __("Dati anagrafici e informazioni di contatto dei componenti della squadra.", 'volleytnt' ), array( $this, $short_form ? 'form_atleti_short' : 'form_atleti' ) );
 		
-		$form->show();		
+		$form->show( $short_form );		
 				
 		echo '<table id="blueprint" style="display:none;">';
 		if ( $short_form ) $this->riga_persona_short(); else $this->riga_persona();		

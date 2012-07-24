@@ -39,6 +39,7 @@ class VolleyTNT {
 		add_action( 'admin_menu',				array( $this, 'admin_menu' ) );
 		add_action( 'admin_enqueue_scripts',	array( $this, 'admin_enqueue_scripts' ) );
 		add_action( 'template_redirect',		array( $this, 'template_redirect' ) );
+		add_action( 'admin_head',				array( $this, 'admin_head' ) );
 		
 		add_filter( 'plugin_row_meta',			array( $this, 'plugin_row_meta' ), 10, 4 );
 
@@ -58,7 +59,18 @@ class VolleyTNT {
 		add_shortcode( 'volleytnt_finali', array( $this, 'sc_finali' ) );
 		
 	}
+
+	public function get_lang() {
+		return array_shift( explode( '_', get_locale() ) );
+	}
 	
+	public function admin_head() {
+		?>
+		<script language="JavaScript" type="text/javascript">
+			volleytnt_lang = '<?php echo $this->get_lang(); ?>';
+		</script>
+		<?php
+	}
 	public function template_redirect() {
 		wp_enqueue_style('volleytnt_common');
 	}
@@ -653,6 +665,11 @@ class VolleyTNT {
 			$page = $this->pages[ $this->wp_tnt_pages[ $hook ] ];
 			if ( $page->js_files ) foreach ( $page->js_files as $file ) {
 				$file['dependencies'][] = 'volleytnt';
+				if ( in_array( 'jquery-ui-datepicker', $file['dependencies'] ) ) {
+					wp_register_script( 'jquery-ui-datepicker-localization', 'http://jquery-ui.googlecode.com/svn/trunk/ui/i18n/jquery.ui.datepicker-' . $this->get_lang() . '.js', array( 'jquery-ui-datepicker' ) );
+					wp_register_script( 'jquery-ui-datepicker-localization-run', $this->url . '/js/datepicker_localization.js', array( 'jquery-ui-datepicker-localization' ) );
+					wp_enqueue_script( 'jquery-ui-datepicker-localization-run' );
+				}
 				wp_register_script( $file['file'], $this->url . '/js/' . $file['file'], $file['dependencies'] );
 				wp_enqueue_script( $file['file'] );
 			}
