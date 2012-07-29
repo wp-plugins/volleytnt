@@ -2,6 +2,9 @@ BODY.loading * {
 	cursor:wait !important;
 }
 
+.form-table th {
+	padding:7px 7px 8px !important;
+}
 #icon-volleytnt {
 	background-image: url('Volleyball_32x32.png');
 	background-position: center center;
@@ -167,4 +170,8 @@ br.clearer {
 
 #formfinale select {
 	width:100%;
+}
+
+#calcolopartite .ui-slider-horizontal {
+	margin-right:5px;
 }

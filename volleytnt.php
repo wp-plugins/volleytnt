@@ -13,10 +13,10 @@ define( 'VOLLEYTNT_URL', WP_PLUGIN_URL . '/volleytnt' );
 
 global $wp_version;
 
-if ( version_compare( $wp_version, '3.3', '>=' ) ) {
+if ( version_compare( $wp_version, '3.3', '>=' ) and version_compare( PHP_VERSION, '5.0', '>=' ) ) {
 	require_once( VOLLEYTNT_PATH . DIRECTORY_SEPARATOR . 'core' . DIRECTORY_SEPARATOR . 'the_plugin.php' );
 } else {
-	add_action( 'pre_current_active_plugins', create_function( '', 'echo \'<div class="error fade"><p><strong>Whoa! There is an error!</strong></p><p>VolleyTNT requires at least Wordpress 3.3 RC1. Please disable the plugin and upgrade your installation.</p></div>\';') );
+	add_action( 'pre_current_active_plugins', create_function( '', 'echo \'<div class="error fade"><p><strong>Whoa! There is an error!</strong></p><p>VolleyTNT requires at least Wordpress 3.3 and PHP 5.0. Please disable VolleyTNT plugin and upgrade your installation.</p></div>\';') );
 }
 
 function volleytnt_activation() {
