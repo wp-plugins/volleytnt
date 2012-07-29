@@ -77,7 +77,7 @@ class VolleyTNT {
 	
 	public function plugin_row_meta( $plugin_meta, $plugin_file, $plugin_data, $status ) {
 		if ( $plugin_file === plugin_basename( VOLLEYTNT_PATH . '/volleytnt.php' ) ) {
-			$plugin_meta[] = '<a href="' . add_query_arg( 'page', 'VolleyTNT_Opzioni', admin_url('admin.php') ) .  '">' . __("Impostazioni", 'volleytnt') . '</a>';
+			$plugin_meta[] = '<a href="' . add_query_arg( 'page', 'volleytnt_opzioni', admin_url('admin.php') ) .  '">' . __("Impostazioni", 'volleytnt') . '</a>';
 		}
 		return $plugin_meta;
 	}
