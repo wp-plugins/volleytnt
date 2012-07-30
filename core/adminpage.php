@@ -51,7 +51,7 @@ abstract class VolleyTNT_AdminPage {
 	}
 	
 	final public function do_triggers() {
-		if ( isset( $_GET['page'] ) and $_GET['page'] == get_class( $this ) ) {
+		if ( isset( $_GET['page'] ) and $_GET['page'] == strtolower( get_class( $this ) ) ) {
 			foreach ( $this->init_triggers as $trigger ) {
 				if ( is_callable( $trigger['callback'] ) and isset( $_GET['method'] ) and $_GET['method'] == $trigger['method'] ) {
 					if ( call_user_func( $trigger['callback'] ) ) {

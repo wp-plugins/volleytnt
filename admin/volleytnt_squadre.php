@@ -15,10 +15,20 @@ class VolleyTNT_Squadre extends VolleyTNT_AdminPage {
 
 		$this->add_case( 'firstpage' );
 		$this->add_case( 'edit' );
+		$this->trigger( 'delete', array( $this, 'cancella_squadra'), add_query_arg( 'page', 'volleytnt_squadre', admin_url('admin.php') ) );
 		
 		VolleyTNT_Form::register_cb_save( 'vtntfrm_squadra', array( $this, 'salva_squadra') );
 		
 		add_action( 'wp_ajax_volleytnt_acatleti', 		array( $this, 'ajax_ac_atleti' ) );
+	}
+
+	public function cancella_squadra() {
+		global $wpdb;
+		//if ( !isset( $_GET['param'] ) ) return false;
+		$p = absint( $_GET['param'] );
+		$wpdb->delete( $this->prefix . 'squadre', array( 'id' => $p ) );
+		$wpdb->query("DELETE FROM `{$this->prefix}squadre_atleti` WHERE `squadre_id` NOT IN (SELECT `id` FROM `{$this->prefix}squadre`)");
+		return true;
 	}
 	
 	public function help_elenco() {

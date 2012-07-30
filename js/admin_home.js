@@ -52,6 +52,8 @@ jQuery( function ( $ ) {
 	}
 	
 	$('#calcolopartite .slider').slider( {	range: 'min',
+											animate: true,
+											value: 3,
 											min: 2,
 											max: $('#volleytnt_calcolopartite .slider').attr('max'),
 											change: volleytnt_aggiorna_contopartite } );

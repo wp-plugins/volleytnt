@@ -23,7 +23,7 @@ class VolleyTNT_Home extends VolleyTNT_AdminPage {
 //		wp_add_dashboard_widget('volleytnt_iscritti', __('Iscritti', 'volleytnt'), array( $this, 'iscritti' ) );	
 		
 		add_meta_box( 'volleytnt_iscrizione_rapida', __('Iscrizione rapida', 'volleytnt'), array( $this, 'iscrizione_rapida' ), $screen, 'normal', $priority );	
-		add_meta_box( 'volleytnt_iscritti', __('Iscritti', 'volleytnt'), array( $this, 'iscritti' ), $screen, 'side', $priority );
+		add_meta_box( 'volleytnt_iscritti', __('Iscritti', 'volleytnt'), array( $this, 'iscritti' ), $screen, 'normal', $priority );
 		add_meta_box( 'volleytnt_calcolopartite', __('Calcolo partite gironi', 'volleytnt'), array( $this, 'calcolo' ), $screen, 'side', $priority );
 		
 		wp_dashboard();

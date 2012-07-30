@@ -40,6 +40,10 @@ class VolleyTNT {
 		add_action( 'admin_enqueue_scripts',	array( $this, 'admin_enqueue_scripts' ) );
 		add_action( 'template_redirect',		array( $this, 'template_redirect' ) );
 		add_action( 'admin_head',				array( $this, 'admin_head' ) );
+		add_action( 'wp_head',					array( $this, 'wp_head' ) );
+		add_action( 'do_feed_volleytnt-rss', 	array( $this, 'feed_rss' ) );
+		add_action( 'do_feed_volleytnt-rss2', 	array( $this, 'feed_rss2' ) );
+		add_action( 'do_feed_volleytnt-atom', 	array( $this, 'feed_atom' ) );
 		
 		add_filter( 'plugin_row_meta',			array( $this, 'plugin_row_meta' ), 10, 4 );
 
@@ -58,6 +62,112 @@ class VolleyTNT {
 		add_shortcode( 'volleytnt_squadre', array( $this, 'sc_squadre' ) );
 		add_shortcode( 'volleytnt_finali', array( $this, 'sc_finali' ) );
 		
+	}
+
+	public function wp_head() {
+		echo "\n<!-- begin VolleyTNT -->\n";
+		echo '<link rel="alternate" type="application/rss+xml" title="' . esc_attr( sprintf( __( 'Risultati delle partite per %s (RSS)', 'volleytnt' ), $this->opts->nome ) ) . '" href="' . add_query_arg( 'feed', 'volleytnt-rss', get_option( 'siteurl' ) ) . '">' . "\n";
+		echo '<link rel="alternate" type="application/rss+xml" title="' . esc_attr( sprintf( __( 'Risultati delle partite per %s (RSS2)', 'volleytnt' ), $this->opts->nome ) ) . '" href="' . add_query_arg( 'feed', 'volleytnt-rss2', get_option( 'siteurl' ) ) . '">' . "\n";
+		echo '<link rel="alternate" type="application/atom+xml" title="' . esc_attr( sprintf( __( 'Risultati delle partite per %s (ATOM)', 'volleytnt' ), $this->opts->nome ) ) . '" href="' . add_query_arg( 'feed', 'volleytnt-atom', get_option( 'siteurl' ) ) . '">' . "\n";
+		echo "<!-- end VolleyTNT -->\n";
+	}
+
+	private function feed( FeedWriter $TestFeed ) {
+		global $wpdb;
+		$TestFeed->setTitle( $this->opts->nome . ' - ' . $this->torneo->label );
+		$TestFeed->setLink( get_option('home') );
+		
+		$data = $wpdb->get_results("SELECT
+									  `sq1`.`label` AS `squadra1`,
+									  `sq2`.`label` AS `squadra2`,
+									  UNIX_TIMESTAMP( CONCAT( `s`.`giorno`, ' ', `s`.`inizio` ) ) AS `unixts`,
+									  `s`.*,
+									  `p`.*
+									FROM `{$this->prefix}partite` AS `p`
+									  JOIN `{$this->prefix}slots` AS `s`
+									    ON `s`.`id` = `p`.`slots_id`
+--									      AND `s`.`giorno` <= CURDATE()
+									  JOIN `{$this->prefix}squadre` AS `sq1`
+									    ON `p`.`squadra_1` = `sq1`.`id`
+									  JOIN `{$this->prefix}squadre` AS `sq2`
+									    ON `p`.`squadra_2` = `sq2`.`id`
+									WHERE `p`.`tornei_id` = {$this->opts->corrente}
+									    AND `p`.`visibile` = 1");
+										
+		if ( $data ) foreach ( $data as $row ) {
+			$newItem = $TestFeed->createNewItem();
+			$newItem->setTitle( $row->squadra1 . ' - ' . $row->squadra2 );
+			$newItem->setLink( get_option('home') );
+			$newItem->setDate( absint( $row->unixts ) );
+			
+			
+				
+			$set1 = $set2 = 0;
+			if ( !$row->set1_sq1 and !$row->set1_sq2 ) {
+				$row->set1_sq1 = $row->set1_sq2 = '';
+			} else if ( $row->set1_sq1 > $row->set1_sq2 ) $set1++; else $set2++;
+			if ( !$row->set2_sq1 and !$row->set2_sq2 ) {
+				$row->set2_sq1 = $row->set2_sq2 = '';
+			} else if ( $row->set2_sq1 > $row->set2_sq2 ) $set1++; else $set2++;
+			if ( !$row->set3_sq1 and !$row->set3_sq2 ) {
+				$row->set3_sq1 = $row->set3_sq2 = '';
+			} else if ( $row->set3_sq1 > $row->set3_sq2 ) $set1++; else $set2++;
+			if ( $this->torneo->set_partita == 5 ) {
+				if ( !$row->set4_sq1 and !$row->set4_sq2 ) {
+					$row->set4_sq1 = $row->set4_sq2 = '';
+				} else if ( $row->set4_sq1 > $row->set4_sq2 ) $set1++; else $set2++;
+				if ( !$row->set5_sq1 and !$row->set5_sq2 ) {
+					$row->set5_sq1 = $row->set5_sq2 = '';
+				} else if ( $row->set5_sq1 > $row->set5_sq2 ) $set1++; else $set2++;
+			}
+			if ( !$set1 and !$set2 ) $set1 = $set2 = '';
+			
+			$descrizione = '';
+			if ( $set1 or $set2 ) {
+				$descrizione = "<strong>$set1 - $set2</strong> <em>(";
+				echo $row->set1_sq1 . ' - ' . $row->set1_sq2;
+				echo ', ' . $row->set2_sq1 . ' - ' . $row->set2_sq2;
+				if ( $row->set3_sq1 or $row->set3_sq2 ) echo ', ' . $row->set3_sq1 . ' - ' . $row->set3_sq2;
+				if ( $this->torneo->set_partita == 5 ) {
+					if ( $row->set4_sq1 or $row->set4_sq2 ) echo ', ' . $row->set4_sq1 . ' - ' . $row->set4_sq2;
+					if ( $row->set5_sq1 or $row->set5_sq2 ) echo ', ' . $row->set5_sq1 . ' - ' . $row->set5_sq2;
+				}
+				echo ")</em>";
+			}
+			$newItem->setDescription( $descrizione );
+
+			$TestFeed->addItem( $newItem );
+		}
+		ob_end_clean();
+		$TestFeed->genarateFeed();
+	}
+
+
+	public function feed_rss() {
+		require_once( $this->path . "/core/UnivarsalFeedWriter/FeedWriter.php");
+		$TestFeed = new FeedWriter( RSS1 );
+		$TestFeed->setDescription( sprintf( __("Risultati delle partite di %s - %s", 'volleytnt'), $this->opts->nome, $this->torneo->label ) );
+		$TestFeed->setChannelAbout( get_option( 'home' ) );
+		$this->feed( $TestFeed );
+	}
+
+	public function feed_rss2() {
+		require_once( $this->path . "/core/UnivarsalFeedWriter/FeedWriter.php");
+		$TestFeed = new FeedWriter( RSS2 );
+		$TestFeed->setChannelElement( 'language', get_locale() );
+		$TestFeed->setChannelElement( 'pubDate', date( DATE_RSS, time() ) );
+		$TestFeed->setDescription( sprintf( __("Risultati delle partite di %s - %s", 'volleytnt'), $this->opts->nome, $this->torneo->label ) );
+		$this->feed( $TestFeed );
+		
+	}
+
+	public function feed_atom() {
+		global $wpdb;
+		require_once( $this->path . "/core/UnivarsalFeedWriter/FeedWriter.php");
+		$TestFeed = new FeedWriter( ATOM );
+		$TestFeed->setChannelElement( 'updated', date( DATE_ATOM, time() ) );
+		$TestFeed->setChannelElement( 'author', array( 'name' => $wpdb->get_var( "SELECT `display_name` FROM `{$wpdb->users}` WHERE `ID`=1}" ) ) );
+		$this->feed( $TestFeed );
 	}
 
 	public function get_lang() {

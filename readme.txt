@@ -39,6 +39,28 @@ You can use these shortcodes in your posts and pages:
 
 Simply use Wordpress standard tools to install this plugin.
 
+
+== Changelog ==
+
+= 0.2 =
+* Added dashboard widget to calculate the number of matches needed.
+* Added RSS, RSS2 and Atom feed for matches results
+* Bug fixes:
+	* Team deletion now run properly
+
+= 0.1 =
+* First public release
+
+
+== Screenshots ==
+
+1. The plugin dashboard and his widgets
+2. The teams management for current tournement
+3. The first phase management
+4. The calendar creation
+5. The results management
+6. The final knock-out management
+
 == Coming soon ==
 
 English translation.
