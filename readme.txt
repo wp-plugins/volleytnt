@@ -5,6 +5,8 @@ Tags: sport, volley, beachvolley, volleyball, tournament, management
 Requires at least: 3.3
 Tested up to: 3.4.1
 Stable tag: 0.1
+License: GPLv2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Manage volley and beach volley tournaments: registration of athletes, management of playing fields, play-offs, the final knockout.
 
