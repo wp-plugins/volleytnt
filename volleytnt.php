@@ -71,6 +71,8 @@ function volleytnt_activation() {
   `set5_sq2` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0',
   `tornei_id` BIGINT(20) UNSIGNED NOT NULL,
   `visibile` TINYINT(1) NOT NULL DEFAULT '1',
+  `testo_1` VARCHAR(100) DEFAULT NULL,
+  `testo_2` VARCHAR(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) DEFAULT CHARSET=utf8",
 

@@ -35,6 +35,7 @@ You can use these shortcodes in your posts and pages:
 * **[volleytnt_calendario]** the calendar
 * **[volleytnt_risultati]** the results of the first phases
 * **[volleytnt_classifiche_gironi]** the standings of the round
+* **[volleytnt_classifiche_intergironi]** the standings between all rounds, merged by position
 * **[volleytnt_finali]** the final knock-out tree
 
 == Installation ==
@@ -47,6 +48,8 @@ Simply use Wordpress standard tools to install this plugin.
 = 0.2 =
 * Added dashboard widget to calculate the number of matches needed.
 * Added RSS, RSS2 and Atom feed for matches results
+* Added standings between all rounds
+* Added custom labels in finals matches
 * Bug fixes:
 	* Team deletion now run properly
 

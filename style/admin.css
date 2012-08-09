@@ -168,6 +168,12 @@ br.clearer {
 	width:50px;
 }
 
+#formfinale #testo_1,
+#formfinale #testo_2 {
+	width:160px;
+	margin-left:50px;
+}
+
 #formfinale select {
 	width:100%;
 }

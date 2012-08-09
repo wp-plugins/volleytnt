@@ -57,6 +57,7 @@ class VolleyTNT {
 		
 				
 		add_shortcode( 'volleytnt_classifiche_gironi', array( $this, 'sc_classifiche_gironi' ) );
+		add_shortcode( 'volleytnt_classifiche_intergironi', array( $this, 'sc_classifiche_intergironi' ) );
 		add_shortcode( 'volleytnt_risultati', array( $this, 'sc_risultati' ) );
 		add_shortcode( 'volleytnt_calendario', array( $this, 'sc_calendario' ) );
 		add_shortcode( 'volleytnt_squadre', array( $this, 'sc_squadre' ) );
@@ -218,14 +219,24 @@ class VolleyTNT {
 		$this->opts = (object) get_option( 'volleytnt_opts', array(	'nome'			=> 'Torneo',
 																	'corrente'		=> 0 ) );
 		$this->torneo = $wpdb->get_row("SELECT * FROM `{$this->prefix}tornei` WHERE `id`={$this->opts->corrente}");
-		$this->torneo->categorie = explode( ',', $this->torneo->categorie );
-		$this->torneo->set_partita = absint( $this->torneo->set_partita );
-		$this->torneo->campi = absint( $this->torneo->campi );
-		$this->torneo->durata_turno = absint( $this->torneo->durata_turno );
-		$this->torneo->finali_M = absint( $this->torneo->finali_M );
-		$this->torneo->finali_F = absint( $this->torneo->finali_F );
-		$this->torneo->finali_X = absint( $this->torneo->finali_X );
-		
+		if ( $this->torneo ) {
+			$this->torneo->categorie = explode( ',', $this->torneo->categorie );
+			$this->torneo->set_partita = absint( $this->torneo->set_partita );
+			$this->torneo->campi = absint( $this->torneo->campi );
+			$this->torneo->durata_turno = absint( $this->torneo->durata_turno );
+			$this->torneo->finali_M = absint( $this->torneo->finali_M );
+			$this->torneo->finali_F = absint( $this->torneo->finali_F );
+			$this->torneo->finali_X = absint( $this->torneo->finali_X );
+		} else {
+			$this->torneo = new stdClass();
+			$this->torneo->categorie = array();
+			$this->torneo->set_partita = 3;
+			$this->torneo->campi = 2;
+			$this->torneo->durata_turno = 30;
+			$this->torneo->finali_M = 8;
+			$this->torneo->finali_F = 8;
+			$this->torneo->finali_X = 8;
+		}
 		VolleyTNT_Form::manage_cbs_save();
 		foreach ( $this->pages as $page ) $page->do_triggers();
 	}
@@ -358,6 +369,8 @@ class VolleyTNT {
 				GROUP BY
 					`{$this->prefix}squadre`.`id`
 				ORDER BY 
+					`{$this->prefix}squadre`.`categoria` ASC,
+					`{$this->prefix}gironi`.`girone` ASC,
 					`{$this->prefix}squadre`.`label` ASC,
 					`{$this->prefix}atleti`.`cognome` ASC,
 					`{$this->prefix}atleti`.`nome` ASC" );
@@ -392,6 +405,7 @@ class VolleyTNT {
 
 				if ( !isset( $work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ] ) )
 					$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ] = array(	'giocate'		=> 0,
+																							'punti_class'	=> 0,
 																							'vinti'			=> 0,
 																							'persi'			=> 0,
 																							'fatti'			=> 0,
@@ -400,6 +414,7 @@ class VolleyTNT {
 																							'label'			=> $row->label_1 );
 				if ( !isset( $work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ] ) ) 
 					$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ] = array(	'giocate'		=> 0,
+																							'punti_class'	=> 0,
 																							'vinti'			=> 0,
 																							'persi'			=> 0,
 																							'fatti'			=> 0,
@@ -437,48 +452,83 @@ class VolleyTNT {
 					}
 					
 					if ( $set1_sq1 > $set1_sq2 ) {
+						$vinti1++;
 						$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['vinti']++;
 						$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['persi']++;
 					} else {
+						$vinti2++;
 						$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['vinti']++;
 						$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['persi']++;
 					}
 					if ( $set2_sq1 > $set2_sq2 ) {
+						$vinti1++;
 						$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['vinti']++;
 						$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['persi']++;
 					} else {
+						$vinti2++;
 						$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['vinti']++;
 						$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['persi']++;
 					}
 					if ( $this->torneo->set_partita == 5 ) {
 						if ( $set3_sq1 > $set3_sq2 ) {
+							$vinti1++;
 							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['vinti']++;
 							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['persi']++;
 						} else {
+							$vinti2++;
 							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['vinti']++;
 							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['persi']++;
 						}
 						if ( $set4_sq1 or $set4_sq2 ) if ( $set4_sq1 > $set4_sq2 ) {
+							$vinti1++;
 							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['vinti']++;
 							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['persi']++;
 						} else {
+							$vinti2++;
 							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['vinti']++;
 							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['persi']++;
 						}
 						if ( $set5_sq1 or $set5_sq2 ) if ( $set5_sq1 > $set5_sq2 ) {
+							$vinti1++;
 							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['vinti']++;
 							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['persi']++;
 						} else {
+							$vinti2++;
 							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['vinti']++;
 							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['persi']++;
 						}
 					} else {
 						if ( $set3_sq1 or $set3_sq2 ) if ( $set3_sq1 > $set3_sq2 ) {
+							$vinti1++;
 							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['vinti']++;
 							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['persi']++;
 						} else {
+							$vinti2++;
 							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['vinti']++;
 							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['persi']++;
+						}
+					}
+					if ( $this->torneo->set_partita == 5 ) {
+						if ( $vinti1 > $vinti2 ) {
+							if ( $vinti2 == 2 ) {
+								$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['punti_class'] += 2;
+								$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['punti_class'] += 1;								
+							} else {
+								$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['punti_class'] += 3;
+							}
+						} else {
+							if ( $vinti1 == 2 ) {
+								$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['punti_class'] += 1;
+								$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['punti_class'] += 2;								
+							} else {
+								$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['punti_class'] += 3;
+							}						
+						}
+					} else {
+						if ( $vinti1 > $vinti2 ) {
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_1 ]['punti_class'] += 3;
+						} else {
+							$work[ $row->categoria ][ $row->girone ][ $row->squadra_2 ]['punti_class'] += 3;						
 						}
 					}
 				}
@@ -487,6 +537,7 @@ class VolleyTNT {
 			foreach ( $work as $categoria => $i_gironi ) { 
 				foreach ( $i_gironi as $girone => $squadre ) { 
 					foreach ( $squadre as $id_squadra => $dati ) {
+						$dati['q_punti_class'] = $dati['giocate'] ? round( $dati['punti_class'] / $dati['giocate'], 2 ) : 0;
 						$dati['q_vinti'] = $dati['giocate'] ? round( $dati['vinti'] / $dati['giocate'], 2 ) : 0;
 						$dati['d_set'] = $dati['vinti'] - $dati['persi'];
 						$dati['qd_set'] = $dati['giocate'] ? round( $dati['d_set'] / $dati['giocate'], 2 ) : 0;
@@ -505,15 +556,29 @@ class VolleyTNT {
 	}
 	
 	private function sort_classifica( $a, $b ) {
-		if ( $a['vinti'] == $b['vinti'] ) {
-			if ( $a['qd_set'] == $b['qd_set'] ) {
-				if ( $a['qd_punti'] == $b['qd_punti'] ) {
-					if ( $a['giocate'] == $b['giocate'] ) {
-						return 0;
-					} else return $a['giocate'] > $b['giocate'] ? 1 : -1;
-				} else return $a['qd_punti'] < $b['qd_punti'] ? 1 : -1;
-			} else return $a['qd_set'] < $b['qd_set'] ? 1 : -1;	
-		} else return $a['vinti'] < $b['vinti'] ? 1 : -1;
+		if ( $a['punti_class'] == $b['punti_class'] ) {
+			if ( $a['vinti'] == $b['vinti'] ) {
+				if ( $a['d_set'] == $b['d_set'] ) {
+					if ( $a['d_punti'] == $b['d_punti'] ) {
+						if ( $a['giocate'] == $b['giocate'] ) {
+							return strcmp( $a['label'], $b['label'] );
+						} else return $a['giocate'] > $b['giocate'] ? 1 : -1;
+					} else return $a['d_punti'] < $b['d_punti'] ? 1 : -1;
+				} else return $a['d_set'] < $b['d_set'] ? 1 : -1;	
+			} else return $a['vinti'] < $b['vinti'] ? 1 : -1;	
+		} else return $a['punti_class'] < $b['punti_class'] ? 1 : -1;
+	}
+	
+	private function sort_classifica_intergironi( $a, $b ) {
+		if ( $a['q_punti_class'] == $b['q_punti_class'] ) {
+			if ( $a['q_vinti'] == $b['q_vinti'] ) {
+				if ( $a['qd_set'] == $b['qd_set'] ) {
+					if ( $a['qd_punti'] == $b['qd_punti'] ) {
+						return strcmp( $a['label'], $b['label'] );
+					} else return $a['qd_punti'] < $b['qd_punti'] ? 1 : -1;
+				} else return $a['qd_set'] < $b['qd_set'] ? 1 : -1;	
+			} else return $a['q_vinti'] < $b['q_vinti'] ? 1 : -1;	
+		} else return $a['q_punti_class'] < $b['q_punti_class'] ? 1 : -1;
 	}
 
 	public function sc_squadre( $atts, $content = '' ) {
@@ -662,6 +727,55 @@ class VolleyTNT {
 		return $_ . '</div>';
 	}
 
+	public function sc_classifiche_intergironi( $atts, $content = '' ) {
+		extract( shortcode_atts( array(
+			'torneo' => $this->opts->corrente
+		), $atts ) );
+		if ( !$torneo ) return '';
+		$_ = '<div class="tornei_classifiche_intergironi">';
+		$classifiche = $this->get_classifiche( $torneo );
+		foreach ( $classifiche as $categoria => $gironi ) {
+			$_ .= '<h3>' . $this->l_categorie[ $categoria ] . '</h3>';
+			$work = array();
+			foreach ( $gironi as $girone => $squadre ) {
+				foreach ( $squadre as $pos => $value ) {
+					$work[ $pos + 1 ][] = $value;
+				}
+			}
+			foreach ( $work as $pos => $squadre ) {
+				
+				$_ .= '<h4>' . sprintf( __('%d<sup>e</sup> classificate', 'volleytnt'), $pos ) . '</h4>';
+				$_ .= '<table><thead><tr>';
+				$_ .= '<th class="posizione">' . __('Pos.', 'volleytnt') . '</th>';
+				$_ .= '<th class="squadra">' . __('Squadra', 'volleytnt') . '</th>';
+				$_ .= '<th class="partite">' . __('Partite', 'volleytnt') . '</th>';
+				$_ .= '<th class="pticlass">' . __('Q. p.ti class.', 'volleytnt') . '</th>';
+				$_ .= '<th class="setvinti">' . __('Q. set vinti', 'volleytnt') . '</th>';
+				$_ .= '<th class="diffset">' . __('Q. diff. set', 'volleytnt') . '</th>';
+				$_ .= '<th class="diffpti">' . __('Q. diff. p.ti', 'volleytnt') . '</th>';
+				$_ .= '</tr></thead><tbody>';
+				$subpos = 1;
+				usort( $squadre, array( $this, 'sort_classifica_intergironi') );
+				foreach ( $squadre as $s ) {
+					$_ .= '<tr>';
+					$_ .= '<td class="posizione">' . $subpos . '&ordm;</td>';
+					$_ .= '<td class="squadra">' . $s['label'] . '</td>';
+					$_ .= '<td class="partite">' . $s['giocate'] . '</td>';
+					$_ .= '<td class="pticlass">' . $s['q_punti_class'] . '</td>';
+					$_ .= '<td class="setvinti">' . $s['q_vinti'] . '</td>';
+					$_ .= '<td class="diffset">' . $s['qd_set'] . '</td>';
+					$_ .= '<td class="diffpti">' . $s['qd_punti'] . '</td>';
+					$_ .= '</tr>';
+					$subpos++;
+				}
+				$_ .= '</tbody></table>';
+			}
+		}
+		
+		return $_ . '</div>';
+	}
+			
+
 	
 	public function sc_classifiche_gironi( $atts, $content = '' ) {
 		extract( shortcode_atts( array(
@@ -674,7 +788,7 @@ class VolleyTNT {
 			$pos = 1;
 			$_ .= '<h3>' . sprintf( __('Girone %s', 'volleytnt'), $categoria . $girone ) . '</h3>';
 			$_ .= '<table><thead><tr>';
-			$_ .= '<th class="posizione">' . __('Pos.', 'volleytnt') . '</th>';
+			$_ .= '<th class="posizione" colspan="2">' . __('Pos.', 'volleytnt') . '</th>';
 			$_ .= '<th class="squadra">' . __('Squadra', 'volleytnt') . '</th>';
 			$_ .= '<th class="partite">' . __('Partite', 'volleytnt') . '</th>';
 			$_ .= '<th class="set">' . __('Set', 'volleytnt') . '</th>';
@@ -683,10 +797,11 @@ class VolleyTNT {
 			foreach ( $squadre as $s ) {
 				$_ .= '<tr>';
 				$_ .= '<td class="posizione">' . $pos . '&ordm;</td>';
+				$_ .= '<td class="punticlass">' . $s['punti_class'] . '</td>';
 				$_ .= '<td class="squadra">' . $s['label'] . '</td>';
 				$_ .= '<td class="partite">' . $s['giocate'] . '</td>';
-				$_ .= '<td class="set">' . $s['vinti'] . 'v, ' . $s['persi'] . 'p <em>(' . $s['qd_set'] . ')</em></td>';
-				$_ .= '<td class="punti">' . $s['fatti'] . 'f, ' . $s['subiti'] . 's <em>(' . $s['qd_punti'] . ')</em></td>';
+				$_ .= '<td class="set">' . $s['vinti'] . 'v, ' . $s['persi'] . 'p <em>(' . $s['d_set'] . ')</em></td>';
+				$_ .= '<td class="punti">' . $s['fatti'] . 'f, ' . $s['subiti'] . 's <em>(' . $s['d_punti'] . ')</em></td>';
 				$_ .= '</tr>';
 				$pos++;
 			}
@@ -877,6 +992,8 @@ class VolleyTNT_Tree {
 			$p->set4_sq2 = '';
 			$p->set5_sq1 = '';
 			$p->set5_sq2 = '';
+			$p->testo_1 = '';
+			$p->testo_2 = '';
 			$class = 'partita nongiocata';
 		}
 
@@ -892,7 +1009,7 @@ class VolleyTNT_Tree {
 		$class .= ' p' . $id;
 		?>
 		<div class="<?php echo $class; ?>" squadra_1="<?php echo $p->squadra_1; ?>" squadra_2="<?php echo $p->squadra_2; ?>" categoria="<?php echo $p->categoria; ?>" id_partita="<?php echo $id; ?>">
-			<div class="squadra squadra1"><?php echo isset( $this->squadre[ $p->categoria ][ $p->squadra_1 ] ) ? $this->squadre[ $p->categoria ][ $p->squadra_1 ] : ''; ?></div>
+			<div class="squadra squadra1"><?php echo ( $p->squadra_1 and isset( $this->squadre[ $p->categoria ][ $p->squadra_1 ] ) ) ? $this->squadre[ $p->categoria ][ $p->squadra_1 ] : $p->testo_1; ?></div>
 			<div class="separatore">
 				<div class="punti punti1">
 					<div class="risultato risultato1"><?php echo $p->set1; ?></div>
@@ -916,7 +1033,7 @@ class VolleyTNT_Tree {
 					<?php } ?>
 				</div>
 			</div>
-			<div class="squadra squadra2"><?php echo isset( $this->squadre[ $p->categoria ][ $p->squadra_2 ] ) ? $this->squadre[ $p->categoria ][ $p->squadra_2 ] : ''; ?></div>
+			<div class="squadra squadra2"><?php echo ( $p->squadra_2 and isset( $this->squadre[ $p->categoria ][ $p->squadra_2 ] ) ) ? $this->squadre[ $p->categoria ][ $p->squadra_2 ] : $p->testo_2; ?></div>
 		</div>
 		<?php
 	}

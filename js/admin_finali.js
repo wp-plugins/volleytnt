@@ -22,7 +22,9 @@ jQuery( function ( $ ) {
 						set3_sq2: $('#formfinale .set3_sq2').val(),
 						set4_sq2: $('#formfinale .set4_sq2').val(),
 						set5_sq2: $('#formfinale .set5_sq2').val(),
-						visibile: $('#partita_visibile').prop('checked') ? 1 : 0 };
+						visibile: $('#partita_visibile').prop('checked') ? 1 : 0,
+						testo_1: $('#formfinale #testo_1').val(),
+						testo_2: $('#formfinale #testo_2').val(), };
 		$('body').addClass('loading');
 		$.post(	ajaxurl,
 				dati, 
@@ -83,6 +85,9 @@ jQuery( function ( $ ) {
 		$('#formfinale').attr('categoria', categoria );
 		$('#formfinale').attr('id_partita', partita.attr('id_partita') );
 		$('#partita_visibile').prop('checked', !partita.hasClass('nongiocata') );
+		
+		$('#formfinale #testo_1').val( partita.attr('squadra_1') == '0' ? partita.find('.squadra.squadra1').text() : '' );
+		$('#formfinale #testo_2').val( partita.attr('squadra_2') == '0' ? partita.find('.squadra.squadra2').text() : '' );
 		$('#formfinale').dialog('open');
 	} );
 } );

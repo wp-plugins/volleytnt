@@ -41,23 +41,27 @@ class VolleyTNT_Finali extends VolleyTNT_AdminPage {
 											`set5_sq2` = %d,
 											`squadra_1` = %d,
 											`squadra_2` = %d,
-											`visibile` = %d
+											`visibile` = %d,
+											`testo_1` = %s,
+											`testo_2` = %s
 										WHERE `categoria` = %s
 											AND `finale` = %s
 											AND `tornei_id` = %d",
 										$_POST['set1_sq1'],
 										$_POST['set2_sq1'],
 										$_POST['set3_sq1'],
-										$_POST['set4_sq1'],
-										$_POST['set5_sq1'],
+										isset( $_POST['set4_sq1'] ) ? $_POST['set4_sq1'] : 0,
+										isset( $_POST['set5_sq1'] ) ? $_POST['set5_sq1'] : 0,
 										$_POST['set1_sq2'],
 										$_POST['set2_sq2'],
 										$_POST['set3_sq2'],
-										$_POST['set4_sq2'],
-										$_POST['set5_sq2'],
+										isset( $_POST['set4_sq2'] ) ? $_POST['set4_sq2'] : 0,
+										isset( $_POST['set5_sq2'] ) ? $_POST['set5_sq2'] : 0,
 										$_POST['squadra_1'],
 										$_POST['squadra_2'],
 										$_POST['visibile'],
+										$_POST['testo_1'],
+										$_POST['testo_2'],
 										$_POST['categoria'],
 										$_POST['id_partita'],
 										$this->opts->corrente	) );
@@ -76,6 +80,9 @@ class VolleyTNT_Finali extends VolleyTNT_AdminPage {
 												$_POST['categoria'],
 												$_POST['id_partita'],
 												$this->opts->corrente ) );
+		
+		if ( !$row->label_1 ) $row->label_1 = $row->testo_1;
+		if ( !$row->label_2 ) $row->label_2 = $row->testo_2;
 		
 		$row->set1 = $row->set2 = 0;
 		if ( !$row->set1_sq1 and !$row->set1_sq2 ) {
@@ -154,8 +161,13 @@ class VolleyTNT_Finali extends VolleyTNT_AdminPage {
 </tr>
 </tbody>
 </table>
-<p><input type="checkbox" id="partita_visibile" tabindex="13"><label for="partita_visibile"><?php _e('Partita giocata', 'volleytnt'); ?></label></p>
-<p><input type="submit" class="button-primary" value="<?php echo esc_attr( __('Salva partita', 'volleytnt' ) ); ?>" tabindex="14"></p>
+<p>
+	<input type="checkbox" id="partita_visibile" tabindex="13">&nbsp;<label for="partita_visibile"><?php _e('Partita giocata', 'volleytnt'); ?></label>
+	<input type="text" id="testo_1" tabindex="14">&nbsp;<label for="testo_1"><?php _e('Testo 1', 'volleytnt'); ?></label>
+	<input type="text" id="testo_2" tabindex="15">&nbsp;<label for="testo_2"><?php _e('Testo 2', 'volleytnt'); ?></label>
+	 
+</p>
+<p><input type="submit" class="button-primary" value="<?php echo esc_attr( __('Salva partita', 'volleytnt' ) ); ?>" tabindex="16"></p>
 </form>
 		<?php
 	}

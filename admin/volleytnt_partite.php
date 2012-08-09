@@ -13,7 +13,7 @@ class VolleyTNT_Partite extends VolleyTNT_AdminPage {
 
 		$this->add_case( 'firstpage' );
 		
-		$this->trigger( 'rigenerapartitegironi', array( $this, 'rigenera_partite_gironi' ), '?page=VolleyTNT_Partite' );
+		$this->trigger( 'rigenerapartitegironi', array( $this, 'rigenera_partite_gironi' ), '?page=volleytnt_partite' );
 		
 		add_action( 'wp_ajax_volleytnt_partite_orari', 		array( $this, 'ajax_partite_orari' ) );
 	}
