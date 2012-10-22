@@ -574,7 +574,9 @@ class VolleyTNT {
 			if ( $a['q_vinti'] == $b['q_vinti'] ) {
 				if ( $a['qd_set'] == $b['qd_set'] ) {
 					if ( $a['qd_punti'] == $b['qd_punti'] ) {
-						return strcmp( $a['label'], $b['label'] );
+						if ( $a['giocate'] == $b['giocate'] ) {
+							return strcmp( $a['label'], $b['label'] );	
+						} else return $a['giocate'] < $b['giocate'] ? 1 : -1;
 					} else return $a['qd_punti'] < $b['qd_punti'] ? 1 : -1;
 				} else return $a['qd_set'] < $b['qd_set'] ? 1 : -1;	
 			} else return $a['q_vinti'] < $b['q_vinti'] ? 1 : -1;	
@@ -677,8 +679,7 @@ class VolleyTNT {
 				$_ .= '<tr>';
 				
 				$_ .= '<th>';
-				$_ .= sprintf( __('Girone %s', 'volleytnt'), $row->categoria . $row->girone );
-				if ( $row->campo ) $_ .= '<br/>' . sprintf( __('%s, %s-%s, campo %s', 'volleytnt'), $row->giorno, $row->inizio, $row->fine, $row->campo );
+				$_ .= $row->campo ? sprintf( __('Campo %s<br/>%s, %s-%s', 'volleytnt'), $row->campo, $row->giorno, $row->inizio, $row->fine ) : '&nbsp;';
 				$_ .= '</th>';
 				
 				$_ .= '<td>';
@@ -735,7 +736,6 @@ class VolleyTNT {
 		$_ = '<div class="tornei_classifiche_intergironi">';
 		$classifiche = $this->get_classifiche( $torneo );
 		foreach ( $classifiche as $categoria => $gironi ) {
-			$_ .= '<h3>' . $this->l_categorie[ $categoria ] . '</h3>';
 			$work = array();
 			foreach ( $gironi as $girone => $squadre ) {
 				foreach ( $squadre as $pos => $value ) {
@@ -744,15 +744,15 @@ class VolleyTNT {
 			}
 			foreach ( $work as $pos => $squadre ) {
 				
-				$_ .= '<h4>' . sprintf( __('%d<sup>e</sup> classificate', 'volleytnt'), $pos ) . '</h4>';
+				$_ .= '<h3>' . sprintf( __('%s, %d<sup>e</sup> classificate', 'volleytnt'), $this->l_categorie[ $categoria ], $pos ) . '</h3>';
 				$_ .= '<table><thead><tr>';
 				$_ .= '<th class="posizione">' . __('Pos.', 'volleytnt') . '</th>';
 				$_ .= '<th class="squadra">' . __('Squadra', 'volleytnt') . '</th>';
-				$_ .= '<th class="partite">' . __('Partite', 'volleytnt') . '</th>';
 				$_ .= '<th class="pticlass">' . __('Q. p.ti class.', 'volleytnt') . '</th>';
 				$_ .= '<th class="setvinti">' . __('Q. set vinti', 'volleytnt') . '</th>';
 				$_ .= '<th class="diffset">' . __('Q. diff. set', 'volleytnt') . '</th>';
 				$_ .= '<th class="diffpti">' . __('Q. diff. p.ti', 'volleytnt') . '</th>';
+				$_ .= '<th class="partite">' . __('Partite', 'volleytnt') . '</th>';
 				$_ .= '</tr></thead><tbody>';
 				$subpos = 1;
 				usort( $squadre, array( $this, 'sort_classifica_intergironi') );
@@ -760,11 +760,11 @@ class VolleyTNT {
 					$_ .= '<tr>';
 					$_ .= '<td class="posizione">' . $subpos . '&ordm;</td>';
 					$_ .= '<td class="squadra">' . $s['label'] . '</td>';
-					$_ .= '<td class="partite">' . $s['giocate'] . '</td>';
 					$_ .= '<td class="pticlass">' . $s['q_punti_class'] . '</td>';
 					$_ .= '<td class="setvinti">' . $s['q_vinti'] . '</td>';
 					$_ .= '<td class="diffset">' . $s['qd_set'] . '</td>';
 					$_ .= '<td class="diffpti">' . $s['qd_punti'] . '</td>';
+					$_ .= '<td class="partite">' . $s['giocate'] . '</td>';
 					$_ .= '</tr>';
 					$subpos++;
 				}

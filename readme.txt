@@ -4,7 +4,7 @@ Donate link: http://volleytnt.belinde.net
 Tags: sport, volley, beachvolley, volleyball, tournament, management
 Requires at least: 3.3
 Tested up to: 3.4.1
-Stable tag: 0.1
+Stable tag: 0.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -52,6 +52,9 @@ Simply use Wordpress standard tools to install this plugin.
 * Added custom labels in finals matches
 * Bug fixes:
 	* Team deletion now run properly
+
+= 0.1.1 =
+* Fixed a bug causing improper output before sending HTTP headers
 
 = 0.1 =
 * First public release
